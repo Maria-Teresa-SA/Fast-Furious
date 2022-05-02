@@ -1,7 +1,10 @@
 import pandas 
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional, TextIO, List
+import time
+# import fuzzysearch import find_near_matches
 
+# IDEA 1: tenir una llista dels elements per poder comparar
 districts = ['Sants-Montjuïc',
  'Eixample',
  'Sant Andreu',
@@ -87,7 +90,7 @@ categories = ['Restaurants',
  'Discoteques',
  'Karaokes',
  'Teatres']
- 
+
 @dataclass
 class Address:
   address_name: str # nom del carrer
@@ -105,19 +108,48 @@ class Restaurant:
 
 Restaurants = [Restaurant]
 
-#descarregar i llegir el fitxers de restaurants i retornar-ne la seva llista
-def read() -> Restaurants: 
-  
-  csv_url = "https://raw.githubusercontent.com/jordi-petit/ap2-metro-nyam-2022/main/data/restaurants.csv"
-  taula_dades = pandas.read_csv(csv_url)
-  ls = [] # type: Restaurants
-  for i, row in taula_dades.iterrows():
-    restaurant = Restaurant(row['name'], int(row['register_id'].strip('\ufeff')), Address(row['addresses_road_name'], row['addresses_start_street_number'], row['addresses_neighborhood_name'], row['addresses_district_name'], row['addresses_zip_code']),  row['secondary_filters_name'])
-    ls.append(restaurant)
- 
-  return ls
+# descarregar i llegir el fitxers de restaurants i retornar-ne la seva llista
+def read() -> Restaurants:
+
+    csv_url = "https://raw.githubusercontent.com/jordi-petit/ap2-metro-nyam-2022/main/data/restaurants.csv"
+    columnes_guardem = ['name', 'register_id', 'addresses_road_name', 'addresses_start_street_number', 'addresses_neighborhood_name',
+                        'addresses_district_name', 'addresses_zip_code', 'secondary_filters_name']
+    taula_dades = pandas.read_csv(csv_url, usecols=columnes_guardem, keep_default_na=False, dtype={'name': str,
+                                                                                                   'register_id': str,
+                                                                                                   'addresses_road_name': str,
+                                                                                                   'addresses_start_street_number': str,
+                                                                                                   'addresses_neighborhood_name': str,
+                                                                                                   'addresses_district_name': str,
+                                                                                                   'addresses_zip_code': str,
+                                                                                                   'secondary_filters_name': str
+                                                                                                   })
+    ls = []  # type: Restaurants
+    for i, row in taula_dades.iterrows():
+        restaurant = Restaurant(row['name'], row['register_id'].strip('\ufeff'), Address(row['addresses_road_name'], row['addresses_start_street_number'],
+                                row['addresses_neighborhood_name'], row['addresses_district_name'], row['addresses_zip_code']),  row['secondary_filters_name'])
+        ls.append(restaurant)
+    # POSSIBLE ALTERNATIVA
+    #ls = taula_dades.tolist()
+    # problema: no guarda adreces com a struct
+
+    return ls
 
 
+# https://pypi.org/project/fuzzysearch/ Per implementar la cerca difusa
 
 #busca els restaurants que satisfan la cerca
-def find(query: str, restaurants: Restaurants) -> Restaurants: ...
+def find(query: str, restaurants: Restaurants) -> Restaurants:
+
+  queries = query.split(" ") # multiple queries
+  possibilities = [] # type: Restaurants
+  for restaurant in restaurants:
+    for query in queries:
+      add = False
+      for el in [restaurant.category, restaurant.address.district, restaurant.address.neighbourhood, restaurant.address.address_name, restaurant.name]:
+        if query in el:
+          add = True
+          break
+      if not add: break  
+    if add: possibilities.append(restaurant)
+
+  return possibilities
