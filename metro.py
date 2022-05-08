@@ -1,11 +1,11 @@
-import pandas
-from typing_extensions import TypeAlias
-from dataclasses import dataclass
-from typing import Optional, TextIO, List
-from collections import namedtuple
-import networkx as nx
+import pandas # llegir fitxers csv
+from dataclasses import dataclass # dataclasses
+from typing_extensions import TypeAlias 
+from typing import Optional, TextIO, List # typing
+from collections import namedtuple # generar tuples 
+import networkx as nx # generar graf
 
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt # plotejar mapa
 
 #import staticmaps
 
