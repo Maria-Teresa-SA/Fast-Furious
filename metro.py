@@ -55,7 +55,7 @@ def read_stations() -> Stations:
     stations = []
     for i, row in taula_dades.iterrows():
         p = row["GEOMETRY"].strip('POINT( )').split()  # type: List[int]
-        s = Station(row["NOM_ESTACIO"], row["NOM_LINIA"], row["ORDRE_ESTACIO"], Coord(float(p[0]), float(p[1])), _assign_color(i))
+        s = Station(row["NOM_ESTACIO"], row["NOM_LINIA"], Coord(float(p[0]), float(p[1])), _assign_color(i))
         stations.append(s)
 
     return stations
@@ -126,28 +126,30 @@ def get_metro_graph() -> MetroGraph:
     # ESTACIONS:
     stations = read_stations()
     n = len(stations)
+    s = stations[0]
+    G.add_node(0, tipus = type(s), info = s, position = s.coord)
+    Dict[stations[0].name] = [0]
 
-    G.add_node(0, info = stations[0])
     for i in range(1, n):
         s = stations[i]
-        G.add_node(i, tipus = type(s), info = s)
-        if s.line == stations[i-1].line:
-            G.add_edge(i, i-1, tipus = "tram")
-    
-    # es pot fer d'alguna altra manera??
+        G.add_node(i, tipus = type(s), info = s, position = s.coord)
         if s.name in Dict.keys():
             Dict[s.name].append(i)
         else:
             Dict[s.name] = [i]
+        if s.line == stations[i-1].line:
+          G.add_edge(i, i-1, tipus = "tram")
 
     # ACCESSOS:
     accesses = read_accesses()
     m = len(accesses)
     # nodes
+    # print(Dict)
     for i in range(n, n + m):
         a = accesses[i - n]
-        G.add_node(i, tipus = type(a), info = a)
+        G.add_node(i, tipus = type(a), info = a, position = a.coord)
         # arestes
+        # print(a.name_access, a.name_station)
         llista = Dict[a.name_station]
         for j in llista:
             G.add_edge(j, i, tipus = "acces")
