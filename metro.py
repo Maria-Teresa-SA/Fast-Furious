@@ -70,7 +70,7 @@ def read_accesses() -> Accesses:
     
     accesses = []
     for i, row in taula_accessos.iterrows():
-        p = row['GEOMETRY'].strip('POINT ( )').split()  # type List[str]
+        p = row['GEOMETRY'].strip('POINT ( )').split()  # type: List[str]
         a = Access(row['NOM_ACCES'], row['NOM_ESTACIO'], row['NOM_LINIA'], row['NOM_TIPUS_ACCESSIBILITAT'], Coord(float(p[0]), float(p[1])), 'black')
         accesses.append(a)
 
@@ -127,12 +127,12 @@ def get_metro_graph() -> MetroGraph:
     stations = read_stations()
     n = len(stations)
     s = stations[0]
-    G.add_node(0, tipus = type(s), info = s, position = s.coord)
+    G.add_node(0, tipus = "station", info = s, position = s.coord)
     Dict[stations[0].name] = [0]
 
     for i in range(1, n):
         s = stations[i]
-        G.add_node(i, tipus = type(s), info = s, position = s.coord)
+        G.add_node(i, tipus = "station", info = s, position = s.coord)
         if s.name in Dict.keys():
             Dict[s.name].append(i)
         else:
@@ -147,7 +147,7 @@ def get_metro_graph() -> MetroGraph:
     # print(Dict)
     for i in range(n, n + m):
         a = accesses[i - n]
-        G.add_node(i, tipus = type(a), info = a, position = a.coord)
+        G.add_node(i, tipus = "access", info = a, position = a.coord)
         # arestes
         # print(a.name_access, a.name_station)
         llista = Dict[a.name_station]
