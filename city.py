@@ -4,15 +4,6 @@
 # El primer cop que es demani el graf de carrers l'obtindrem a través d'osmnx i l'enmagatzemarem en un fitxer. Si es demana un altre cop pel graf, l'obtindrem llegint el fitxer a on estan les seves dades. 
 # funcions estan mig fetes ja
 
-
-# FA FALTA IMPORTAR LLIBRERIES?
-
-# import pandas  # llegir fitxers csv
-# from dataclasses import dataclass  # dataclasses
-# from typing_extensions import TypeAlias
-# from typing import Optional, TextIO, List  # typing
-# from collections import namedtuple  # generar tuples
-# import networkx as nx  # generar graf
 from metro import *
 import osmnx as ox
 import os
@@ -81,28 +72,30 @@ def load_osmnx_graph(filename: str) -> OsmnxGraph:
 #     return bcn_streets
    
 
-def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph: ...
-# retorna un graf fusió de g1 i g2 de tipus CityGraph. Transferirem tots els nodes i arestes del graf g2 a g1 i després seleccionarem les que necessitem (i filtrant també la informació que requerim)
-# del graf g1.
+def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph: 
+    """Retorna un graf fusió del graf de Barcelona (carrers) i el graf de metros. Primer recorrem el primer 
+    graf afegint al nostre graf de carrers tots els nodes, arestes i informació rellevant.
+    Després fem la unió amb el graf g2 i en retornem el resultat"""
+    
     city_graph = nx.Graph()                     # type = CityGraph
- # NO, fer servir mètode de la unió.
- 
-    # city_graph.add_nodes_from(g2)               # hi afegim els nodes del graf g2
-    # city_graph.add_edges_from(g2.edges)         # hi afegim les arestes del graf g2
-    # city_graph.add_nodes_from(g1)               # hi afegim els nodes del graf g1
 
-    # afegir les arestes del graf g1:
-    for u, nbrsdict in g.adjacency():
-    # for each adjacent node v and its (u, v) edges' information ...
+    # for each node and its neighbors' information
+    for u, nbrsdict in g1.adjacency():
+        
+        city_graph.add_node(u, tipus = "street", position = Coord(g1.nodes[u]['x'], g1.nodes[u]['y']))  # Nota per L i S: x i y ja són floats així que no fa falta canviar el tipus   
+        # for each adjacent node v and its (u, v) edges' information
         for v, edgesdict in nbrsdict.items():
-            # print('   ', v)
-            # EDITAR LA INFORMACIÓ DE L'ARESTA, ESBORRAR LA BIDIRECCIONALITAT.
-            # osmnx graphs are multigraphs, but we will just consider their first edge
+                # osmnx graphs are multigraphs, but we will just consider their first edge
             eattr = edgesdict[0]    # eattr contains the attributes of the first edge
-            # we remove geometry information from eattr because we don't need it and take a lot of space
+                # we remove geometry information from eattr because we don't need it and take a lot of space
             if 'geometry' in eattr:
                 del(eattr['geometry'])
-            print('        ', eattr)
+            # afegim una aresta entre u i v i hi associem tota la informació d'aquesta i el seu tipus.
+            city_graph.add_edge(u, v, tipus = "enllaç", info = eattr)
+
+    # FALTA AFEGIR LES ARESTES ENTRE ELS ACCESSOS A LES ESTACIONS I ELS CARRERS.
+    city_graph = nx.union(g2, city_graph)
+    return city_graph
 
      
     
