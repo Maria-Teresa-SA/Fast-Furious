@@ -5,10 +5,10 @@ from typing import Optional, TextIO, List       # typing
 from collections import namedtuple              # generar tuples (Coord)
 import networkx as nx                           # generar graf
 import matplotlib.pyplot as plt                 # plotejar mapa
-import staticmaps                               # plotejar mapa
+from staticmap import StaticMap, Line, CircleMarker                   # plotejar mapa
 
 # falta typealias
-Coord = namedtuple('Coord', ['x', 'y'])
+Coord = namedtuple('Coord', ['x', 'y']) # (longitude, latitude)
 
 
 @dataclass
@@ -26,7 +26,6 @@ class Access:
     name_access: TypeAlias = str        # nom de l'accés
     name_station: TypeAlias = str       # nom de l'estació associada a l'accés
     line: TypeAlias = str               # nom de la línia
-    accessibility: TypeAlias = str      # accessibilitat, segurament informació inútil
     coord: TypeAlias = Coord            # coordenades de l'accés
     color: TypeAlias = str              # color del node
 
@@ -49,13 +48,13 @@ MetroGraph: TypeAlias = nx.Graph
 def read_stations() -> Stations:
     """Llegeix un fitxer csv amb la informació requerida de les estacions de metro de Barcelona i en retorna una llista d'aquestes."""
 
-    taula_dades = pd.read_csv("estacions_linia.csv", usecols=["NOM_ESTACIO", "NOM_LINIA", "GEOMETRY"], keep_default_na=False, dtype={
-                                  "NOM_ESTACIO": str, "NOM_LINIA": str, "GEOMETRY": str})
+    taula_dades = pd.read_csv("estacions_linia.csv", usecols=["NOM_ESTACIO", "NOM_LINIA", "GEOMETRY", "COLOR_LINIA"], keep_default_na=False, dtype={
+                                  "NOM_ESTACIO": str, "NOM_LINIA": str, "GEOMETRY": str, "COLOR_LINIA": str})
     
     stations = []
     for i, row in taula_dades.iterrows():
         p = row["GEOMETRY"].strip('POINT( )').split()  # type: List[int]
-        s = Station(row["NOM_ESTACIO"], row["NOM_LINIA"], Coord(float(p[0]), float(p[1])), _assign_color(i))
+        s = Station(row["NOM_ESTACIO"], row["NOM_LINIA"], Coord(float(p[0]), float(p[1])), '#' + row["COLOR_LINIA"])
         stations.append(s)
 
     return stations
@@ -65,13 +64,13 @@ def read_stations() -> Stations:
 def read_accesses() -> Accesses:
     """Llegeix un fitxer csv amb la informació requerida dels accessos de metro de Barcelona i en retorna una llista d'aquests."""
 
-    taula_accessos = pd.read_csv("accessos_estacio_linia.csv", usecols=['NOM_ACCES', 'NOM_ESTACIO', 'NOM_LINIA', 'NOM_TIPUS_ACCESSIBILITAT', 'GEOMETRY'], keep_default_na=False, dtype={
-                                     "NOM_ACCES": str, "NOM_ESTACIO": str, "NOM_LINIA": str, "NOM_TIPUS_ACCESSIBILITAT": str, "GEOMETRY": str})
+    taula_accessos = pd.read_csv("accessos_estacio_linia.csv", usecols=['NOM_ACCES', 'NOM_ESTACIO', 'NOM_LINIA', 'GEOMETRY'], keep_default_na=False, dtype={
+                                     "NOM_ACCES": str, "NOM_ESTACIO": str, "NOM_LINIA": str, "GEOMETRY": str})
     
     accesses = []
     for i, row in taula_accessos.iterrows():
         p = row['GEOMETRY'].strip('POINT ( )').split()  # type: List[str]
-        a = Access(row['NOM_ACCES'], row['NOM_ESTACIO'], row['NOM_LINIA'], row['NOM_TIPUS_ACCESSIBILITAT'], Coord(float(p[0]), float(p[1])), 'black')
+        a = Access(row['NOM_ACCES'], row['NOM_ESTACIO'], row['NOM_LINIA'], Coord(float(p[0]), float(p[1])), 'black')
         accesses.append(a)
 
     return accesses
@@ -82,124 +81,110 @@ def get_metro_graph() -> MetroGraph:
     A cada node li és assignat un identificador i uns atributs que n'especifiquen el tipus i tota la informació requerida.
     Les arestes també tenen un atribut amb la informació del seu tipus."""
 
-    # G = nx.Graph()
-    # Dict = {}  # type: Dict[str, List[int]]
-    # # versió 1: fem servir un diccionari
-
-    # # ESTACIONS:
-    # stations = read_stations()
-    # # nodes
-    # for i in range(len(stations)):
-    #     # els assignem un identificador i, ja que vàries estacions tenen el mateix nom tot i ser de línies diferents
-    #     s = stations[i]
-    #     G.add_node(i, station_name=s.name, line=s.line, coord=s.coord, color=s.color)
-
-    #     if s.name in Dict.keys():
-    #         Dict[s.name].append(i)
-    #     else:
-    #         Dict[s.name] = [i]
-
-    # # arestes # FALTARÀ DEFINIR QUIN TIPUS D'EGE ÉS I BLAH BLAH
-    # llista = [(i-1, i) for i in range(1, len(stations)) if stations[i-1].line == stations[i].line]
-    # G.add_edges_from(llista)
-
-    # # ACCESSOS:
-    # accesses = read_accesses()
-    # # nodes
-    # for i in range(len(accesses)):
-    #     a = accesses[i]
-    #     G.add_node((a.name_access, i), station_name=a.name_station,
-    #                line=a.line, coord=a.coord, color=a.color)
-    #     # arestes
-    #     llista = Dict[a.name_station]
-    #     # print("1", a.name_access, "2", a.name_station,"3", llista)
-    #     for j in llista:
-    #         # FALTARÀ DEFINIR QUIN TIPUS D'EDGE ÉS
-    #         G.add_edge(j, (a.name_access, i))
-
-
-###################################################################################################################################################
-
     G = nx.Graph()
     Dict = {}  # type: Dict[str, List[int]]
+    # el diccionari tindrà unes 150/160 entrades. Mida petita.
    
-    # ESTACIONS:
+    # ESTACIONS
     stations = read_stations()
-    n = len(stations)
+
     s = stations[0]
-    G.add_node(0, tipus = "station", info = s, position = s.coord)
+    G.add_node(0, tipus = "station", name= s.name, x = s.coord.x, y = s.coord.y, color = s.color)
     Dict[stations[0].name] = [0]
 
-    for i in range(1, n):
-        s = stations[i]
-        G.add_node(i, tipus = "station", info = s, position = s.coord)
-        if s.name in Dict.keys():
-            Dict[s.name].append(i)
+    for id in range(1, len(stations)):
+        s = stations[id]
+        G.add_node(id, tipus = "station", name= s.name, x = s.coord.x, y = s.coord.y, color = s.color)
+        
+        
+        if s.name in Dict:
+            Dict[s.name].append(id)
         else:
-            Dict[s.name] = [i]
-        if s.line == stations[i-1].line:
-          G.add_edge(i, i-1, tipus = "tram")
+            Dict[s.name] = [id]
+        
+        if s.line == stations[id-1].line:
+          G.add_edge(id, id-1, tipus = "tram")
+
+
+    # ACABAR DE MIRAR BÉ TEMA ACCESSOS: HI HA DIFERENTS  ACCESSOS PER LÍNIA??? LES LÍNIES QUE COMPARTEIXEN PARADA ESTAN CONNECTADES, AIXÍ QUE EN PRINCIPI NO HAURIA DE FER FALTA.
+    # ES POT LLEGIR TOT ALESHORES DE FORMA LINIAL?? TÉ PINTA.
+    # MIRAR COM VOLEM AFEGIR ELS NODES I LES ARESTES REALMENT AL GRAF. NO TOTES LES ARESTES PODEN PESAR EL MATEIX.
 
     # ACCESSOS:
     accesses = read_accesses()
-    m = len(accesses)
     # nodes
     # print(Dict)
-    for i in range(n, n + m):
-        a = accesses[i - n]
-        G.add_node(i, tipus = "access", info = a, position = a.coord)
-        # arestes
-        # print(a.name_access, a.name_station)
+    for i in range(0, len(accesses)):
+        id = i + len(stations)
+        a = accesses[i]
+        G.add_node(id, tipus = "access", name = (a.name_access, a.name_station), x = a.coord.x, y = a.coord.y, color = a.color)
         llista = Dict[a.name_station]
         for j in llista:
-            G.add_edge(j, i, tipus = "acces")
+            G.add_edge(j, id, tipus = "access")
 
     return G
 
 
-def _assign_color(i) -> str:
-    """Assigna un color a cada línia de metro"""
+# NO HAURIA DE FER FALTA AQUESTA FUNCIÓ SI ELS NODES TENEN UN ATRIBUT QUE ES DIU COLOR
+# def _assign_color(i) -> str:
+#     """Assigna un color a cada línia de metro"""
 
-    # estaria bé fer-ho amb el nom de la línia i assignar-li el color real del metro de barcelona
-    if i < 30:
-        return 'red'
-    elif i < 48:
-        return 'cyan'
-    elif i < 74:
-        return 'green'
-    elif i < 96:
-        return 'black'
-    elif i < 123:
-        return 'purple'
-    elif i < 132:
-        return 'grey'
-    elif i < 147:
-        return 'orange'
-    elif i < 153:
-        return 'brown'
-    elif i < 164:
-        return 'yellow'
-    elif i < 169:
-        return 'black'
-    return 'pink'
+#     # estaria bé fer-ho amb el nom de la línia i assignar-li el color real del metro de barcelona
+#     if i < 30:
+#         return 'red'
+#     elif i < 48:
+#         return 'cyan'
+#     elif i < 74:
+#         return 'green'
+#     elif i < 96:
+#         return 'black'
+#     elif i < 123:
+#         return 'purple'
+#     elif i < 132:
+#         return 'grey'
+#     elif i < 147:
+#         return 'orange'
+#     elif i < 153:
+#         return 'brown'
+#     elif i < 164:
+#         return 'yellow'
+#     elif i < 169:
+#         return 'black'
+#     return 'pink'
 
 
-def get_colors(g: MetroGraph):
-    dict_colors = nx.get_node_attributes(g, 'color')
-    list_colors = []
-    for a in dict_colors:
-        list_colors.append(dict_colors[a])
-    return list_colors
+# def get_colors(g: MetroGraph):
+#     dict_colors = nx.get_node_attributes(g, 'color')
+#     list_colors = []
+#     for a in dict_colors:
+#         list_colors.append(dict_colors[a])
+#     return list_colors
 
 
 def show(g: MetroGraph) -> None:
     """Mostra el graf amb nodes les estacions de metro i els accesos a aquestes de la ciutat i les seves arestes corresponents."""
 
-    nx.draw(g, pos=nx.get_node_attributes(g, 'coord'), node_size=50, node_color=get_colors(g))
+    nx.draw(g, pos=nx.get_node_attributes(g, 'coord'), node_size=50, node_color=nx.get_node_attributes(g, 'color'))
     plt.show()
 
 
 # desa el graf com a imatge amb el mapa de la ciutat com a fons en l'arxiu especificat a filename
 # usar staticmaps
 def plot(g: MetroGraph, filename: str) -> None:
-    m = StaticMap(width=100000, height=75000, url_template=filename)
+    m = StaticMap(1200, 800, 10)
+    for u in g.nodes:
+        inf = g.nodes[u]["info"]
+        coordinate_u = inf.coord
+        color = inf.color
+        marker = CircleMarker(coordinate_u, color, 10)
+        m.add_marker(marker)
+        for v in g.adj[u]:
+            coordinate_v = g.nodes[v]['position']
+            line = Line({coordinate_u, coordinate_v}, color, 5)
+            m.add_line(line)
+
+    image = m.render()
+    image.save(filename)
+
+
+plot(get_metro_graph(), "bon_dia.png")
