@@ -1,8 +1,13 @@
 import pandas 
 from dataclasses import dataclass
 from typing import Optional, TextIO, List
-import time
+from collections import namedtuple              # generar tuples (Coord)
+
 # import fuzzysearch import find_near_matches
+
+# falta typealias
+Coord = namedtuple('Coord', ['x', 'y']) # (longitude, latitude)
+
 
 # IDEA 1: tenir una llista dels elements per poder comparar
 districts = ['Sants-Montjuïc',
@@ -102,31 +107,31 @@ class Address:
 @dataclass
 class Restaurant: 
   name: str # nom del restaurant
-  register_id: int # ID del restaurant (potser inútil)
   address: Address # adressa del restaurant
   category : str # tipus de restaurant
+  position: Coord
 
 Restaurants = [Restaurant]
-
+ 
 # descarregar i llegir el fitxers de restaurants i retornar-ne la seva llista
 def read() -> Restaurants:
 
-    csv_url = "https://raw.githubusercontent.com/jordi-petit/ap2-metro-nyam-2022/main/data/restaurants.csv"
-    columnes_guardem = ['name', 'register_id', 'addresses_road_name', 'addresses_start_street_number', 'addresses_neighborhood_name',
-                        'addresses_district_name', 'addresses_zip_code', 'secondary_filters_name']
-    taula_dades = pandas.read_csv(csv_url, usecols=columnes_guardem, keep_default_na=False, dtype={'name': str,
-                                                                                                   'register_id': str,
+    columnes_guardem = ['name', 'addresses_road_name', 'addresses_start_street_number', 'addresses_neighborhood_name',
+                        'addresses_district_name', 'addresses_zip_code', 'secondary_filters_name', 'geo_epgs_4326_x','geo_epgs_4326_y']
+    taula_dades = pandas.read_csv("restaurants.csv", usecols=columnes_guardem, keep_default_na=False, dtype={'name': str,
                                                                                                    'addresses_road_name': str,
                                                                                                    'addresses_start_street_number': str,
                                                                                                    'addresses_neighborhood_name': str,
                                                                                                    'addresses_district_name': str,
                                                                                                    'addresses_zip_code': str,
-                                                                                                   'secondary_filters_name': str
+                                                                                                   'secondary_filters_name': str,
+                                                                                                   'geo_epgs_4326_x': float,
+                                                                                                   'geo_epgs_4326_y': float
                                                                                                    })
     ls = []  # type: Restaurants
     for i, row in taula_dades.iterrows():
-        restaurant = Restaurant(row['name'], row['register_id'].strip('\ufeff'), Address(row['addresses_road_name'], row['addresses_start_street_number'],
-                                row['addresses_neighborhood_name'], row['addresses_district_name'], row['addresses_zip_code']),  row['secondary_filters_name'])
+        restaurant = Restaurant(row['name'], Address(row['addresses_road_name'], row['addresses_start_street_number'],
+                                row['addresses_neighborhood_name'], row['addresses_district_name'], row['addresses_zip_code']),  row['secondary_filters_name'], Coord(row['geo_epgs_4326_y'], row['geo_epgs_4326_x']))
         ls.append(restaurant)
     # POSSIBLE ALTERNATIVA
     #ls = taula_dades.tolist()

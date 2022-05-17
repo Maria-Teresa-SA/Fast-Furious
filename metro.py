@@ -31,13 +31,6 @@ class Access:
     color: TypeAlias = str              # color del node
 
 
-@dataclass
-class Edge:
-    tipus: str                          # pot ser de tipus tram // enllaç // accés 
-    color: str                          # 
-# falta acabar de definir-ne els atributs
-
-
 Stations: TypeAlias = List[Station]
 
 Accesses: TypeAlias = List[Access]
@@ -76,6 +69,18 @@ def read_accesses() -> Accesses:
 
     return accesses
 
+def set_time(tipus: str, dist: float) -> float:
+# velocitat mitja caminant = 5km/h = 83 m/min    
+# velocitat mitja en metro = 26 km/h = 433.3 m/min
+# 3 min espera més 3km/h velocitat d'escales = 3 + 50m/min
+    return dist/83 if tipus == "Street" else (dist/433.3 if tipus == "Tram" else 3 + dist/50)  
+
+
+""" TIPUS D'ARESTES:
+    Entre trams de metro
+    entre parades de metro de mateix nom
+    entre accessos i parades de metro
+"""
 
 def get_metro_graph() -> MetroGraph:
     """Genera el graf amb nodes Estacions i Accessos als metros i amb les arestes requerides entre aquests.
@@ -85,29 +90,38 @@ def get_metro_graph() -> MetroGraph:
     G = nx.Graph()
     
     stations, accesses = read_stations(), read_accesses()
-    s, a = stations[0], accesses[0]
-
     n, m = len(stations), len(accesses)
-    G.add_node(0, tipus = "station", name = s.name, position = s.coord, color = s.color)
-    G.add_node(n, tipus = "access", name = (a.name_access, a.name_station), position = a.coord, color = a.color)
-    G.add_edge(0, n, tipus = "access", time = set_time(haversine(s.coord, a.coord)), color = "black")
-    
-    j = 1
-    for id in range(1, n):
-        s, a = stations[id], accesses[j]
-        G.add_node(id, tipus = "station", name = s.name, position = s.coord, color = s.color)
-        while a.name_station == s.name:
-            G.add_node(j + n, tipus = "access", name = (a.name_access, a.name_station), position = a.coord, color = a.color)
-            G.add_edge(j + n, id, tipus = "access", time = set_time(haversine(s.coord, a.coord)), color = "black")
-            j += 1
-            if j < m:
-              a = accesses[j]
-            else:
-              break
-        
-        if s.line == stations[id-1].line:
 
-            G.add_edge(id, id-1, tipus = "tram", time = set_time(haversine(s.coord, stations[id-1].coord)), color = s.color)
+    s, a = stations[0], accesses[0]
+    G.add_node(0, tipus = "Station", name = s.name, position = s.coord, color = s.color)
+    G.add_node(n, tipus = "Access", name = (a.name_access, a.name_station), position = a.coord, color = a.color)
+    G.add_edge(0, n, tipus = "Access", time = set_time("Access", haversine(s.coord, a.coord)), color = "black")
+    
+    noms_estacions_repetides = {s.name : [0]}
+    j = 1
+
+    for id in range(1, n):
+        s = stations[id]
+        # afegir estacions de metro
+        G.add_node(id, tipus = "Station", name = s.name, position = s.coord, color = s.color)
+        
+        # afegir connexions entre parades amb el mateix nom
+        if s.name in noms_estacions_repetides:
+            for s2 in noms_estacions_repetides[s.name]:
+                G.add_edge(id, s2, tipus = "Enllaç", time = set_time("Enllaç", haversine(s.coord, G.nodes[s2]["position"])), color = "black")
+        else:
+            noms_estacions_repetides[s.name] = [id]
+
+        # afegir accessos a l'estació
+        while a.name_station == s.name and j < m:
+            a = accesses[j]
+            G.add_node(j + n, tipus = "Access", name = (a.name_access, a.name_station), position = a.coord, color = a.color)
+            G.add_edge(j + n, id, tipus = "Access", time = set_time("Access", haversine(s.coord, a.coord)), color = "black")
+            j += 1
+        
+        # afegir trams de metro
+        if s.line == stations[id-1].line:
+            G.add_edge(id, id-1, tipus = "Tram", time = set_time("Tram", haversine(s.coord, stations[id-1].coord)), color = s.color)
 
     return G
 
@@ -118,6 +132,7 @@ def get_node_colors(g: MetroGraph):
     for a in dict_colors:
         list_colors.append(dict_colors[a])
     return list_colors
+
 
 def get_edge_colors(g: MetroGraph):
     dict_colors = nx.get_edge_attributes(g, 'color')
@@ -144,9 +159,7 @@ def plot(g: MetroGraph, filename: str) -> None:
         marker = CircleMarker(coordinate_u, color, 10)
         m.add_marker(marker)
     for v in g.edges:
-        coordinate_v = g.nodes[v[0]]['position']
-        coordinate_u = g.nodes[v[1]]["position"]
-
+        coordinate_v, coordinate_u = g.nodes[v[0]]['position'], g.nodes[v[1]]["position"]
         line = Line({coordinate_u, coordinate_v}, color, 5)
         m.add_line(line)
 
