@@ -11,12 +11,13 @@ list_restaurants = restaurants.read()
 
 
 diccionari_ajuda = {
-    "start" : "Inicia la conversa. :)",
-    "help" : "Ofereix ajuda sobre les comandes disponibles. :)",
-    "author" : "Mostra el nom de les autores del projecte. :)",
-    "find" : "Cerca quins restaurants satisfan la cerca i n'escriu una llista numerada (12 elements com a molt). Per exemple: /find pizza. :)",
-    "info" : "mostra la informació sobre el restaurant especificat pel seu número (triat de la darrera llista numerada obtinguda amb /find). :)",
-    "guide" : "mostra un mapa amb el camí més curt per anar del punt actual on es troba l'usuari al restaurant especificat pel seu número (triat de la darrera llista numerada obtinguda amb /find). :)"
+    "start" : "Inicia la conversa amb el bot.",
+    "help" : "Ofereix ajuda sobre les comandes disponibles. Si necessites informació addicional d'alguna d'aquestes comandes pots fer-ho fent help <comand>. Per exemple, /help help.",
+    "author" : "Mostra el nom de les autores del projecte.",
+    "find" : """Cerca quins restaurants satisfan la cerca realitzada i n'escriu una llista numerada (12 elements com a molt). Quan s'ha realitzat una demanda, es pot requerir més informació 
+    sobre un restaurant concret utilitzant la comanda info (veure abaix). Per exemple: /find pizza.""",
+    "info" : "Mostra la informació sobre el restaurant especificat pel seu número (triat de la darrera llista numerada obtinguda amb /find).",
+    "guide" : """Mostra un mapa amb el camí més curt per anar del punt actual on et trobes al restaurant especificat pel seu número (triat de la darrera llista numerada obtinguda amb /find). Agafa la targeta de metro i a degustar!"""
 }
 
 # defineix una funció que saluda i que s'executarà quan el bot rebi el missatge /start
@@ -27,6 +28,8 @@ def start(update, context):
 
 
 def help(update, context):
+    """Ofereix ajuda a l'usuari i especificacions de les diferents accions que pot realitzar el bot."""
+
     if len(context.args) == 0:
         context.bot.send_message(chat_id=update.effective_chat.id, text = 
         """Hola, soc l'Emma i soc aquí per ajudar! Aquest bot implementa les següents comandes:
@@ -43,17 +46,22 @@ def help(update, context):
         context.bot.send_message(chat_id=update.effective_chat.id, text = diccionari_ajuda[context.args[0]])
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text = "No reconec aquesta comanda.")
-    # especificacions de cada comanda
+
 
 def author(update, context):
+    """Escriu pel xat el nom de les autores del projecte."""
+
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text="Hola! Aquest bot l'han creat les millors programadores del món (pista: Sílvia Fàbregas i Laura Solà)")
 
 
 def find(update, context):
+    """Troba els restaurants que compleixen les condicions requerides per l'usuari i imprimeix les opcions disponibles per pantalla (màxim 12 opcions)."""
+
     requirements = ''
     for entry in context.args: 
         requirements += str(entry) + " "
+
     possibilities = restaurants.find(requirements, list_restaurants)
     context.user_data['found'] = possibilities
    
