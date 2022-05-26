@@ -1,16 +1,16 @@
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-import city
-import metro
-import restaurants
+from city import *
+from metro import *
+from restaurants import *
 from random import randint
 import os
 
 
-street_graph = city.load_osmnx_graph("barcelona.grf")
-metro_graph = metro.get_metro_graph()
-graph_city = city.build_city_graph(street_graph, metro_graph)
-list_restaurants = restaurants.read()
+street_graph = load_osmnx_graph("barcelona.grf")
+metro_graph = get_metro_graph()
+graph_city = build_city_graph(street_graph, metro_graph)
+list_restaurants = read_restaurants()
 
 
 diccionari_ajuda = {
@@ -37,10 +37,9 @@ diccionari_emojis = {
 def start(update, context):
     """Funció que saluda i que s'executa quan el bot reb el missatge /start."""
 
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Hola! Què passa tronco! Benvingut a Fast and Furious. Si necessites ajuda, utilitza la comanda /help.")
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Hola! Què passa tronco! Benvingut a Fast and Furious. Si necessites ajuda, utilitza la comanda /help. Per funcionar correctament m'hauràs de compartir la teva ubicació. No pateixis, no penso vendre les teves dades ;)")
     username = update.effective_chat.username
     fullname =  update.effective_chat.first_name + ' ' + update.effective_chat.last_name
-
 
 
 def help(update, context):
@@ -65,9 +64,11 @@ def help(update, context):
         context.bot.send_message(chat_id=update.effective_chat.id, text = "No reconec aquesta comanda.")
 
 def where(update, context):
+    """Guarda la ubicació de l'ususari."""
+
     lat = update.effective_message.location.latitude
     lon = update.effective_message.location.longitude
-    context.user_data["location"] = metro.Coord(lon, lat)
+    context.user_data["location"] = Coord(lon, lat)
 
 def author(update, context):
     """Escriu pel xat el nom de les autores del projecte."""
@@ -81,7 +82,6 @@ def text_twelve(begin: int, end: int, possibilities):
         _text += str(i + 1) + " " + diccionari_emojis[possibilities[i].category] + " - " + possibilities[i].name + '\n'
     return _text
 
-# POSEM LO DE ASYNC???? PERGUNTAR A LEMMA
 def find(update, context):
     """Troba els restaurants que compleixen les condicions requerides per l'usuari i imprimeix les opcions disponibles per pantalla (màxim 12 opcions)."""
 
@@ -92,7 +92,7 @@ def find(update, context):
         queries = []
         for entry in context.args: 
             queries.append(str(entry))
-        possibilities = restaurants.find(queries, list_restaurants)
+        possibilities = find_restaurants(queries, list_restaurants)
         # actualitzem i guardem les possibilitats associades a l'últim found realitzat.
         context.user_data['found'] = possibilities
         num_outputs  = min(len(possibilities), 12)
@@ -100,19 +100,22 @@ def find(update, context):
             context.bot.send_message(chat_id=update.effective_chat.id, text= "Oh no... 😢 No s'ha trobat cap restaurant amb aquesta entrada... Prova-ho amb una altra... 😊")       
         else:            
             context.bot.send_message(chat_id=update.effective_chat.id, text= text_twelve(0, num_outputs, possibilities))
-            # if(len(possibilities) > 12):
-            #     keyboard = [
-            #         [
-            #             InlineKeyboardButton("Veure més opcions", callback_data= text_twelve(12, 12 + min(len(possibilitats)-12, 12))),
-            #             InlineKeyboardButton("Ja m'agraden aquestes", callback_data=None),
-            #         ]
-            #     ]
-            #     rm = InlineKeyboardMarkup(keyboard)
-            #     update.message.reply_text("No estàs convençuda? Si vole veure més opcions clica a More." , reply_markup=rm)
+            if(len(possibilities) > 12):
+                more = text_twelve(12, 12 + min(len(possibilities)-12, 6), possibilities)
+                context.user_data["more"] = [False, more]
+                keyboard = [[InlineKeyboardButton("Veure més opcions", callback_data="Sí")]]
+                rm = InlineKeyboardMarkup(keyboard)
+                update.message.reply_text("No estàs convençuda? Si vole veure més opcions clica a Veure més opcions." , reply_markup=rm)
+
+
+def handler_more(update, context):
+    data_callback = update.callback_query.data
+    update.callback_query.answer() 
+    if data_callback == "Sí":
+        context.user_data["more"][0] = True
+        context.bot.send_message(chat_id=update.effective_chat.id, text = context.user_data["more"][1])
 
                     
-    
-
 
 def write_info_of_restaurant(restaurant):
     nom = "Nom del restaurant: " + restaurant.name + "\n"
@@ -129,7 +132,7 @@ def info(update, context):
         possibilities = context.user_data['found']
         try:
             entrada = int(context.args[0])
-            if entrada <= len(possibilities):
+            if 0 < entrada <= 12 + (context.user_data["more"][0])*min(6, len(possibilities)-12):
                 restaurant = possibilities[entrada - 1]
                 _text = write_info_of_restaurant(restaurant)
                 context.bot.send_message(chat_id=update.effective_chat.id, text= _text)
@@ -148,26 +151,31 @@ def info(update, context):
 
 # recordar checkejar que l'entrada és un enter
 def guide(update, context):
-    if 'found' in context.user_data:
-        possibilities = context.user_data['found']
-        entrada = int(context.args[0])
-        if entrada <= len(possibilities):
+    try:
+        if 'found' in context.user_data:
+            possibilities = context.user_data['found']
+            entrada = int(context.args[0])
+            if entrada <= len(possibilities):
 
-            filename = "%d.png" % randint(0, 9999999)
-            coordinate_restaurant = possibilities[entrada - 1].position
-            current_location = context.user_data["location"]
-            # falta afegir les coordenades del retaurant, agafar les coordenades de la persona amb qui ens comuniquem, fer les funcions plot(city i path) i show a city.py
-            path = city.find_path(street_graph, graph_city, coordinate_restaurant, current_location)
-            city.plot_path(graph_city, path, filename)
-            context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(filename, "rb"))
-            os.remove(filename)
-        # else:
-        #     context.bot.send_message(chat_id=update.effective_chat.id,
-        #                              text='Prova amb un número dins el rang de possibilitats.')
+                filename = "%d.png" % randint(0, 9999999)
+                coordinate_restaurant = possibilities[entrada - 1].position
+                current_location = context.user_data["location"]
+                path = find_path(street_graph, graph_city, coordinate_restaurant, current_location)
+                plot_path(graph_city, path, filename)
 
-    else:
-        context.bot.send_message(chat_id=update.effective_chat.id,
-                                 text='ups. Prova a fer find primer.')
+                context.bot.send_message(chat_id=update.effective_chat.id, text="Això pot trigar uns segons...⌛")
+                context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(filename, "rb"))
+                os.remove(filename)
+            else:
+                context.bot.send_message(chat_id=update.effective_chat.id,
+                                     text='Ups. Prova amb un número dins el rang de possibilitats.')
+
+        else:
+            context.bot.send_message(chat_id=update.effective_chat.id,
+                                text='Ups. Prova a fer find primer.')
+    except:
+        context.bot.send_message(chat_id=update.effective_chat.id, text="Sisplau, envia'm la teva ubicació perquè pugui guiar-te.")
+
 
 
 def main() -> None:
@@ -187,6 +195,8 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler('guide', guide))
     dispatcher.add_handler(CommandHandler('author', author))
     dispatcher.add_handler(MessageHandler(Filters.location, where))
+    dispatcher.add_handler(CallbackQueryHandler(handler_more))
+
 
 
     # engega el bot
