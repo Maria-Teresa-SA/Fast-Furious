@@ -110,5 +110,5 @@ def find(queries: List[str], restaurants: Restaurants) -> Restaurants:
   possibilitats = []
 
   for el in pesos:
-    possibilitats.append(el)
+    possibilitats.append(el[0])
   return possibilitats

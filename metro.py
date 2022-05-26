@@ -6,7 +6,7 @@ from collections import namedtuple                                    # generar 
 import networkx as nx                                                 # generar graf
 import matplotlib.pyplot as plt                                       # plotejar mapa
 from staticmap import StaticMap, Line, CircleMarker                   # plotejar mapa
-from haversine import haversine                                       # calcular distàncies entre coordenades
+from haversine import haversine, Unit                                 # calcular distàncies entre coordenades
 
 # falta typealias
 Coord = namedtuple('Coord', ['x', 'y']) # (longitude, latitude)
@@ -68,10 +68,10 @@ def read_accesses() -> Accesses:
     return accesses
 
 def set_time(tipus: str, dist: float) -> float:
-# velocitat mitja caminant = 5km/h = 83 m/min    
+# velocitat mitja caminant = 5km/h = 83 m/min   (afegim un 0.3 pels possibles semàfors) 
 # velocitat mitja en metro = 26 km/h = 433.3 m/min
 # 3 min espera més 3km/h velocitat d'escales = 3 + 50m/min
-    return dist/83 if tipus == "Street" else (dist/433.3 if tipus == "Tram" else 3 + dist/50)  
+    return dist/83 if tipus == "Street" else (dist/433.3 if tipus == "Tram" else 2 + dist/50)  
 
 
 """ TIPUS D'ARESTES:
@@ -93,7 +93,7 @@ def get_metro_graph() -> MetroGraph:
     s, a = stations[0], accesses[0]
     G.add_node(0, tipus = "Station", name = s.name, position = s.coord, color = s.color)
     G.add_node(n, tipus = "Access", name = (a.name_access, a.name_station), position = a.coord, color = a.color)
-    G.add_edge(0, n, tipus = "Access", time = set_time("Access", haversine(s.coord, a.coord)), color = "black")
+    G.add_edge(0, n, tipus = "Access", time = set_time("Access", haversine(s.coord, a.coord, unit=Unit.METERS)), color = "black")
     
     noms_estacions_repetides = {s.name : [0]}
     j = 1
@@ -106,7 +106,7 @@ def get_metro_graph() -> MetroGraph:
         # afegir connexions entre parades amb el mateix nom
         if s.name in noms_estacions_repetides.keys():
             for s2 in noms_estacions_repetides[s.name]:
-                G.add_edge(id, s2, tipus = "Enllaç", time = set_time("Enllaç", haversine(s.coord, G.nodes[s2]["position"])), color = "black")
+                G.add_edge(id, s2, tipus = "Enllaç", time = set_time("Enllaç", haversine(s.coord, G.nodes[s2]["position"], unit=Unit.METERS)), color = "black")
             noms_estacions_repetides[s.name].append(id)
         else:
             noms_estacions_repetides[s.name] = [id]
@@ -114,14 +114,14 @@ def get_metro_graph() -> MetroGraph:
         # afegir accessos a l'estació
         while a.name_station == s.name and j < m:
           G.add_node(j + n, tipus = "Access", name = (a.name_access, a.name_station), position = a.coord, color = a.color)
-          G.add_edge(j + n, id, tipus = "Access", time = set_time("Access", haversine(s.coord, a.coord)), color = "black")
+          G.add_edge(j + n, id, tipus = "Access", time = set_time("Access", haversine(s.coord, a.coord, unit=Unit.METERS)), color = "black")
           j += 1
           if j < m:
             a = accesses[j]
         
         # afegir trams de metro
         if s.line == stations[id-1].line:
-            G.add_edge(id, id-1, tipus = "Tram", time = set_time("Tram", haversine(s.coord, stations[id-1].coord)), color = s.color)
+            G.add_edge(id, id-1, tipus = "Tram", time = set_time("Tram", haversine(s.coord, stations[id-1].coord, unit=Unit.METERS)), color = s.color)
 
     return G
 

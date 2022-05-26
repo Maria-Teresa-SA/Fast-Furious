@@ -84,14 +84,12 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
     j = 0
     for i in list_a:
         coords = g2.nodes[i]["position"]
-        city_graph.add_edge(i, nearest[j], tipus = "Street", color = "black")
+        city_graph.add_edge(i, nearest[j], tipus = "Street", color = "black", time=set_time("Street", haversine(city_graph.nodes[i]["position"], city_graph.nodes[nearest[j]]["position"])))
         j += 1
         
     city_graph.remove_edges_from(nx.selfloop_edges(city_graph))
 
     return city_graph
-
-import time
 
 
 # RECORDEM QUE L'ESTRUCTURA DE COORD ÉS (longitud, latitud)
@@ -104,6 +102,12 @@ def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path:
   nearest_dst = ox.distance.nearest_nodes(ox_g, dst.x, dst.y)
   return nx.shortest_path(g, nearest_src, nearest_dst, weight="time")
 
+
+def get_time_path(g: CityGraph, p: Path):
+    time = 0
+    for i in range(len(p)-1):
+        time += g[p[i]][p[i+1]]["time"]
+    return time
 
 # SHOW TOT EL GRAPH
 def show(g: CityGraph) -> None:
@@ -152,18 +156,3 @@ def plot_path(g: CityGraph, p: Path, filename: str) -> None:
     image = m.render()
     image.save(filename)
 
-
-
-# print("hola")
-streets = load_osmnx_graph("barcelona.grf")
-# print("hola2")
-met = get_metro_graph()
-# print("hola3")
-city = build_city_graph(streets, met)
-# print("hola4")
-path = find_path(streets, city, Coord(2.1417546272277836, 41.38107529139104), Coord(2.1606588363647465, 41.40565583808169))
-
-# print(path)
-plot_path(city, path, 'pathnew.png')
-
-# show(city)
