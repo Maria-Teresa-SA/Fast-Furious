@@ -1,16 +1,15 @@
-import pandas as pd                             # llegir fitxers csv
-from dataclasses import dataclass               # dataclasses
-from typing_extensions import TypeAlias         # typing
-from typing import Optional, TextIO, List       # typing
-from collections import namedtuple              # generar tuples (Coord)
-import networkx as nx                           # generar graf
-import matplotlib.pyplot as plt                 # plotejar mapa
+import pandas as pd                                                   # llegir fitxers csv
+from dataclasses import dataclass                                     # dataclasses
+from typing_extensions import TypeAlias                               # typing
+from typing import Optional, TextIO, List                             # typing
+from collections import namedtuple                                    # generar tuples (Coord)
+import networkx as nx                                                 # generar graf
+import matplotlib.pyplot as plt                                       # plotejar mapa
 from staticmap import StaticMap, Line, CircleMarker                   # plotejar mapa
-from haversine import haversine
+from haversine import haversine                                       # calcular distàncies entre coordenades
 
 # falta typealias
 Coord = namedtuple('Coord', ['x', 'y']) # (longitude, latitude)
-
 
 @dataclass
 class Station:
@@ -26,7 +25,6 @@ class Access:
     """Informació associada a un node del graf de tipus Accessos a les estacions de metro."""
     name_access: TypeAlias = str        # nom de l'accés
     name_station: TypeAlias = str       # nom de l'estació associada a l'accés
-    line: TypeAlias = str               # nom de la línia
     coord: TypeAlias = Coord            # coordenades de l'accés
     color: TypeAlias = str              # color del node
 
@@ -42,12 +40,12 @@ MetroGraph: TypeAlias = nx.Graph
 def read_stations() -> Stations:
     """Llegeix un fitxer csv amb la informació requerida de les estacions de metro de Barcelona i en retorna una llista d'aquestes."""
 
-    taula_dades = pd.read_csv("estacions_linia.csv", usecols=["NOM_ESTACIO", "NOM_LINIA", "GEOMETRY", "COLOR_LINIA"], keep_default_na=False, dtype={
-                                  "NOM_ESTACIO": str, "NOM_LINIA": str, "GEOMETRY": str, "COLOR_LINIA": str})
+    c_g = ["NOM_ESTACIO", "NOM_LINIA", "GEOMETRY", "COLOR_LINIA"] # columnes que guardem
+    taula_dades = pd.read_csv("estacions_linia.csv", usecols = c_g, keep_default_na=False, dtype={c_g[0]: str, c_g[1]: str, c_g[2]: str, c_g[3]: str})
     
     stations = []
     for i, row in taula_dades.iterrows():
-        p = row["GEOMETRY"].strip('POINT( )').split()  # type: List[int]
+        p = row["GEOMETRY"].strip('POINT( )').split()
         s = Station(row["NOM_ESTACIO"], row["NOM_LINIA"], Coord(float(p[0]), float(p[1])), '#' + row["COLOR_LINIA"])
         stations.append(s)
 
@@ -64,7 +62,7 @@ def read_accesses() -> Accesses:
     accesses = []
     for i, row in taula_accessos.iterrows():
         p = row['GEOMETRY'].strip('POINT ( )').split()  # type: List[str]
-        a = Access(row['NOM_ACCES'], row['NOM_ESTACIO'], row['NOM_LINIA'], Coord(float(p[0]), float(p[1])), 'black')
+        a = Access(row['NOM_ACCES'], row['NOM_ESTACIO'], Coord(float(p[0]), float(p[1])), 'black')
         accesses.append(a)
 
     return accesses
@@ -99,25 +97,27 @@ def get_metro_graph() -> MetroGraph:
     
     noms_estacions_repetides = {s.name : [0]}
     j = 1
-
+    a = accesses[j]
     for id in range(1, n):
         s = stations[id]
         # afegir estacions de metro
         G.add_node(id, tipus = "Station", name = s.name, position = s.coord, color = s.color)
         
         # afegir connexions entre parades amb el mateix nom
-        if s.name in noms_estacions_repetides:
+        if s.name in noms_estacions_repetides.keys():
             for s2 in noms_estacions_repetides[s.name]:
                 G.add_edge(id, s2, tipus = "Enllaç", time = set_time("Enllaç", haversine(s.coord, G.nodes[s2]["position"])), color = "black")
+            noms_estacions_repetides[s.name].append(id)
         else:
             noms_estacions_repetides[s.name] = [id]
 
         # afegir accessos a l'estació
         while a.name_station == s.name and j < m:
+          G.add_node(j + n, tipus = "Access", name = (a.name_access, a.name_station), position = a.coord, color = a.color)
+          G.add_edge(j + n, id, tipus = "Access", time = set_time("Access", haversine(s.coord, a.coord)), color = "black")
+          j += 1
+          if j < m:
             a = accesses[j]
-            G.add_node(j + n, tipus = "Access", name = (a.name_access, a.name_station), position = a.coord, color = a.color)
-            G.add_edge(j + n, id, tipus = "Access", time = set_time("Access", haversine(s.coord, a.coord)), color = "black")
-            j += 1
         
         # afegir trams de metro
         if s.line == stations[id-1].line:

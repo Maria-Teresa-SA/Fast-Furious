@@ -38,7 +38,7 @@ def load_osmnx_graph(filename: str) -> OsmnxGraph:
 
     if not os.path.exists(filename):
         bcn_streets = get_osmnx_graph()
-        save_osmnx_graph(bcn_graph, filename)
+        save_osmnx_graph(bcn_streets, filename)
         return bcn_streets
     
     pickle_in = open(filename, "rb")
@@ -84,9 +84,11 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
     j = 0
     for i in list_a:
         coords = g2.nodes[i]["position"]
-        city_graph.add_edge(i, nearest[j], tipus = "Street")
+        city_graph.add_edge(i, nearest[j], tipus = "Street", color = "black")
         j += 1
         
+    city_graph.remove_edges_from(nx.selfloop_edges(city_graph))
+
     return city_graph
 
 import time
@@ -100,7 +102,7 @@ def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path:
 
   nearest_src = ox.distance.nearest_nodes(ox_g, src.x, src.y)
   nearest_dst = ox.distance.nearest_nodes(ox_g, dst.x, dst.y)
-  return nx.shortest_path(g, nearest_src, nearest_dst)
+  return nx.shortest_path(g, nearest_src, nearest_dst, weight="time")
 
 
 # SHOW TOT EL GRAPH
@@ -151,3 +153,17 @@ def plot_path(g: CityGraph, p: Path, filename: str) -> None:
     image.save(filename)
 
 
+
+# print("hola")
+streets = load_osmnx_graph("barcelona.grf")
+# print("hola2")
+met = get_metro_graph()
+# print("hola3")
+city = build_city_graph(streets, met)
+# print("hola4")
+path = find_path(streets, city, Coord(2.1417546272277836, 41.38107529139104), Coord(2.1606588363647465, 41.40565583808169))
+
+# print(path)
+plot_path(city, path, 'pathnew.png')
+
+# show(city)
