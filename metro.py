@@ -86,7 +86,7 @@ def read_accesses() -> Accesses:
 ##################
 
 # Pre: el tipus serà "Street", "Tram", "Enllaç" o "Access" i la distància està en metres
-def set_time(tipus: str, dist: float) -> float:
+def set_time(dtype: str, dist: float) -> float:
     """Funció que retorna el temps que es triga en recórrer una distància (d'un graf) depenent del tipus d'aresta (Street, Tram, Enllaç, Accés).
     
     Velocitat mitja caminant -> 5km/h = 83 m/min
@@ -95,10 +95,10 @@ def set_time(tipus: str, dist: float) -> float:
     Enllaços -> 2.5 minuts d'espera més 4km/h = 2.5 + 66.7 m/min
     """
 
-    if tipus == "Street": return dist/83
-    elif tipus == "Tram": return dist/433.3
-    elif tipus == "Access": return dist/50
-    elif tipus == "Enllaç": return 2.5 + dist/66.7
+    if dtype == "Street": return dist/83
+    elif dtype == "Tram": return dist/433.3
+    elif dtype == "Access": return dist/50
+    elif dtype == "Enllaç": return 2.5 + dist/66.7
 
 
 def get_metro_graph() -> MetroGraph:
@@ -118,12 +118,12 @@ def get_metro_graph() -> MetroGraph:
         s = stations[id]
 
         # afegir estacions de metro (NODES)
-        G.add_node(id, tipus = "Station", name = s.name, position = s.coord, color = s.color, line=s.line)
+        G.add_node(id, dtype = "Station", name = s.name, position = s.coord, color = s.color, line=s.line)
         
         # afegir enllaços de metro (ARESTES)
         if s.name in repeated_stations.keys():
             for s2 in repeated_stations[s.name]:
-                G.add_edge(id, s2, tipus = "Enllaç", time = set_time("Enllaç", haversine(s.coord, G.nodes[s2]["position"], unit=Unit.METERS)), color = "black")
+                G.add_edge(id, s2, dtype = "Enllaç", time = set_time("Enllaç", haversine(s.coord, G.nodes[s2]["position"], unit=Unit.METERS)), color = "black")
             repeated_stations[s.name].append(id)
         else: repeated_stations[s.name] = [id]
 
@@ -131,14 +131,14 @@ def get_metro_graph() -> MetroGraph:
         while j < m:
             a = accesses[j]
             if a.name_station == s.name:
-                G.add_node(j + n, tipus = "Access", name = (a.name_access, a.name_station), position = a.coord, color = a.color)
-                G.add_edge(j + n, id, tipus = "Access", time = set_time("Access", haversine(s.coord, a.coord, unit=Unit.METERS)), color = "black")
+                G.add_node(j + n, dtype = "Access", name = (a.name_access, a.name_station), position = a.coord, color = a.color)
+                G.add_edge(j + n, id, dtype = "Access", time = set_time("Access", haversine(s.coord, a.coord, unit=Unit.METERS)), color = "black")
                 j += 1
             else: break    
         
         # afegir trams de metro
         if id < n and s.line == stations[id-1].line:
-            G.add_edge(id, id-1, tipus = "Tram", time = set_time("Tram", haversine(s.coord, stations[id-1].coord, unit=Unit.METERS)), color = s.color)
+            G.add_edge(id, id-1, dtype = "Tram", time = set_time("Tram", haversine(s.coord, stations[id-1].coord, unit=Unit.METERS)), color = s.color)
 
     return G
 
@@ -175,7 +175,7 @@ def show(g: MetroGraph) -> None:
 # desa el graf com a imatge amb el mapa de la ciutat com a fons en l'arxiu especificat a filename
 # usar staticmaps
 def plot(g: MetroGraph, filename: str) -> None:
-    """Guarda al fitxer "filename" un plot del graf de metros amb la ciutat de Barcelona de fons. S'usa staticmaps."""
+    """Guarda al fitxer "filename" un plot del graf de metros amb la ciutat de Barcelona de fons. S'usa staticmap."""
 
     m = StaticMap(1200, 800, 10)
     for u in g.nodes:
