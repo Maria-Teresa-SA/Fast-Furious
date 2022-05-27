@@ -6,14 +6,11 @@ from typing import Optional, TextIO, List       # typing
 from collections import namedtuple              # generar tuples (Coord)
 from fuzzysearch import find_near_matches       # fer cerca difusa
 
+categories = ['Restaurants', 'Tablaos flamencs', 'Cocteleries','Xampanyeries', 'Bars i pubs musicals' , 'Discoteques', 'Karaokes', 'Teatres']
 
 ######################
-#                    #
 #   Tipus de dades   #
-#                    #
 ######################
-
-categories = ['Restaurants', 'Tablaos flamencs', 'Cocteleries','Xampanyeries','Bars i pubs musicals' , 'Discoteques', 'Karaokes', 'Teatres']
 
 Coord = namedtuple('Coord', ['x', 'y']) # type = tuple(longitude, latitude)
 
@@ -36,13 +33,11 @@ Restaurants = List[Restaurant]
 
 
 #############################
-#                           #
 #  Funcions implementades   #
-#                           #
 #############################
 
 # pre: tenir el fitxer restaurants.csv
-def read() -> Restaurants:
+def read_restaurants() -> Restaurants:
 
     """Llegeix el fitxer restaurants.csv i retorna una llista amb tots els restaurants de la ciutat de Barcelona amb les dades pertinents."""
 
@@ -62,53 +57,61 @@ def read() -> Restaurants:
 
 
 def myFunc(e):
+
+  """Criteri d'ordenació dels restaurants quan es realitza una búsqueda - De major a menor pes."""
+
   return e[1]
 
-def find(queries: List[str], restaurants: Restaurants) -> Restaurants:
+def find_restaurants(queries: List[str], restaurants: Restaurants) -> Restaurants:
 
   """Retorna els restaurants que satisfan les condicions de la cerca realitzada. S'ha implementat una cerca
-  múltiple i difusa (amb màxima distància d'un caràcter)."""
+  múltiple i difusa (amb màxima distància d'un caràcter). A més a més, a cada restaurant que encaixa amb la cerca
+  se li assigna un pes que depèn essencialment de si al comparar una query amb un element del restaurant hi ha hagut
+  encert total o encert amb distància 1 (un caràcter de diferència). Si no es realitzés aquesta priorització, al realitzar
+  la búsqueda "sushi Sants", els resultats capçalera serien tots de Sarrià-Sant Gervasi i Sant Antoni, ja que són les entrades
+  que apareixen abans a la llista de restaurants.
+  """
 
+  for i in range(len(queries)):
+    queries[i] = queries[i].title()   # millorar coincidències
+    
   pesos = []
 
-  buscar_a_categories = False
+  # només busquem dins les categories si hi ha un encert total (no fuzzysearch) per evitar problemes amb la fuzzysearch
+  #  i parelles de paraules com Sants i Restaurants.
+  buscar_categories = False
   for query in queries:
     for category in categories:
-      if query.title() in category:
-        buscar_a_categories = True
+      buscar_categories = query in category
+      if buscar_categories: break
+    if buscar_categories: break
+      
 
   for restaurant in restaurants:
-    add = True
-    pes = 0
-    for query in queries:
-      found = False
-      query = query.title() 
+    pes = 0        
+    coincidencia = False        # si coincidència és True : restaurant coincideix amb la cerca. Pes és la seva prioritat.
 
+    for query in queries:
+      coincidencia = False            
       for el in [restaurant.address.district, restaurant.address.neighbourhood, restaurant.address.address_name, restaurant.name]:
         fuzzy = find_near_matches(query, el, max_l_dist = 1)
         if len(fuzzy):
-          found = True
-          pes = pes + 2 - fuzzy[0].dist
+          coincidencia = True
+          pes += 2 - fuzzy[0].dist
           break
-      # en cas que hem definit que volem buscar dins les categories
-      if not found and buscar_a_categories:
+
+      # en cas que hem definit que volem buscar dins les categories, si encara no ha coincidit
+      if not coincidencia and buscar_categories:
         if query in restaurant.category:
-          found = True
+          coincidencia = True
           pes += 2
-          break
 
-      # si una query no encaixa amb cap element del restaurant
-      if not found:
-        add = False
-        break
+      # si una query no encaixa amb cap element del restaurant, no l'afegirem
+      if not coincidencia: break
 
-    if add: 
+    if coincidencia: 
       pesos.append([restaurant, pes])
 
   pesos.sort(reverse=True, key=myFunc)
 
-  possibilitats = []
-
-  for el in pesos:
-    possibilitats.append(el[0])
-  return possibilitats
+  return [el[0] for el in pesos]
