@@ -117,48 +117,67 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
 
 def get_metro_path_description(g: CityGraph, p: Path, i: int):
     first_station = g.nodes[p[i]]["name"]
-    metro_line = g.nodes[p[i]]["line"]  # falta afegir lina als nodes de tipus tram
+    metro_line = g.nodes[p[i]]["line"]
+    current_edge_type = g[p[i]][p[i+1]]["dtype"]
     while (current_edge_type == "Tram"):
-        ++i
+        i += 1
         current_edge_type = g[p[i]][p[i+1]]["dtype"]
     last_station = g.nodes[p[i]]["name"]
-    ++i
-    descr_trajecte = "Ves des de l'estació" + first_station + \
-        " fins a " + last_station + "amb la linia" + metro_line + ". "
+    i += 1
+    descr_trajecte = "Ves des de l'estació " + first_station + \
+        " fins a " + last_station + " amb la linia " + metro_line + ". "
     return descr_trajecte
 
 
 def get_path_description(g: CityGraph, p: Path):
     description = " "
-    current_edge_type = "Street"
-    for i in range(len(p)-1):
-        if current_edge_type == "Street":
-            starting_street = g.nodes[p[i]][p[i+1]]["name"] 
 
-            while i < len(p)-1 and current_edge_type == "Street":
-                ++i
+    current_edge_type = "Street"
+    i = 0
+    while i < (len(p)-1):
+
+        if (current_edge_type == "Street"):
+            starting_street = g[p[i]][p[i+1]]["name"]
+            if (not isinstance(starting_street, str)):
+                starting_street = starting_street[0]
+            while i < (len(p)-2) and current_edge_type == "Street":
+                i += 1
                 current_edge_type = g[p[i]][p[i+1]]["dtype"]
-            ending_street = g[p[i-1]][p[i]]["name"]
-            descr_trajecte = "Camina des del carrer " + starting_street + " fins al carrer " + ending_street
-        
-        elif current_edge_type == "Access":
+            ending_street = g[p[i-2]][p[i-1]]["name"]
+            if (not isinstance(ending_street, str)):
+
+                ending_street = ending_street[0]
+
+            descr_trajecte = "Camina des del carrer " + starting_street + " fins al carrer " + ending_street + ". "
+            description += descr_trajecte
+            # print(description)
+        if current_edge_type == "Access":
             metro_entry = g.nodes[p[i]]["name"][0]
-            descr_trajecte = "Entra al metro per l'accés " + metro_entry + ". "
-            ++i
+            descr_trajecte = "Entra al metro per l'accés " + metro_entry + "."
+            i += 1
             current_edge_type = g[p[i]][p[i+1]]["dtype"]
             while current_edge_type != "Access":
-                descr_trajecte += get_metro_path_description(g, p, i)
-                current_edge_type = g[p[i]][p[i+1]]["dtype"]
-                if current_edge_type == "Enllaç":
-                    descr_trajecte += "Fes un transbordament. "
-                ++i
-                current_edge_type = g[p[i]][p[i+1]]["dtype"]´
 
+                descr_trajecte += get_metro_path_description(g, p, i)
+                # print(descr_trajecte)
+                while (g[p[i]][p[i+1]]["dtype"] == "Tram"):
+                    i += 1
+
+                if g[p[i]][p[i+1]]["dtype"] == "Enllaç":
+                    descr_trajecte += "Fes un transbordament. "
+                    i += 1
+                #    print(descr_trajecte)
+                current_edge_type = g[p[i]][p[i+1]]["dtype"]
+            i += 1
             metro_exit = g.nodes[p[i]]["name"][0]
             descr_trajecte += ("Surt del metro per l'accés " + metro_exit + "\n")
-        description += descr_trajecte
+            description += descr_trajecte
+        #    print(description)
+            current_edge_type = g[p[i]][p[i+1]]["dtype"]
 
-    return descr_trajecte
+        i += 1
+
+    return description
 
 def get_time_path(g: CityGraph, p: Path):
     """Retorna el temps que es triga en recórrer un cert path."""
