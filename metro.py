@@ -8,6 +8,11 @@ import matplotlib.pyplot as plt                                       # plotejar
 from staticmap import StaticMap, Line, CircleMarker                   # plotejar mapa
 from haversine import haversine, Unit                                 # calcular distàncies entre coordenades
 
+
+######################
+#   Tipus de dades   #
+######################
+
 Coord = namedtuple('Coord', ['x', 'y']) # (longitude, latitude)
 
 @dataclass
@@ -34,6 +39,15 @@ Accesses: TypeAlias = List[Access]
 
 MetroGraph: TypeAlias = nx.Graph
 
+
+#############################
+#  Funcions implementades   #
+#############################
+
+
+#####################
+#  Lectura de dades #
+#####################
 
 # Pre: tenir el fitxer csv estacions_linia.csv
 def read_stations() -> Stations:
@@ -65,6 +79,11 @@ def read_accesses() -> Accesses:
         accesses.append(a)
 
     return accesses
+
+
+##################
+#   Graf metro   #
+##################
 
 # Pre: el tipus serà "Street", "Tram", "Enllaç" o "Access" i la distància està en metres
 def set_time(tipus: str, dist: float) -> float:
@@ -124,6 +143,10 @@ def get_metro_graph() -> MetroGraph:
     return G
 
 
+#################
+#   Imatges     #
+#################
+
 # pre: nodes de g tenen atribut color
 def get_node_colors(g: MetroGraph):
     """Traspassa la informació guardada en un diccionari de colors a una llista de colors per pintar els nodes al mapa.
@@ -142,7 +165,6 @@ def get_edge_colors(g: MetroGraph):
     return [dict_colors[x] for x in dict_colors]
 
 
-
 def show(g: MetroGraph) -> None:
     """Mostra el graf amb les estacions de metro i els accesos a aquestes com a nodes i les seves arestes corresponents."""
 
@@ -154,7 +176,7 @@ def show(g: MetroGraph) -> None:
 # usar staticmaps
 def plot(g: MetroGraph, filename: str) -> None:
     """Guarda al fitxer "filename" un plot del graf de metros amb la ciutat de Barcelona de fons. S'usa staticmaps."""
-    
+
     m = StaticMap(1200, 800, 10)
     for u in g.nodes:
         coordinate_u = g.nodes[u]['position']
