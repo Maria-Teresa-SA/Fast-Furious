@@ -36,6 +36,10 @@ Restaurants = List[Restaurant]
 #  Funcions implementades   #
 #############################
 
+#####################
+#  Lectura de dades #
+#####################
+
 # pre: tenir el fitxer restaurants.csv
 def read_restaurants() -> Restaurants:
 
@@ -55,6 +59,10 @@ def read_restaurants() -> Restaurants:
 
     return ls
 
+
+#################
+#     Cerca     #
+#################
 
 def myFunc(e):
 
@@ -89,10 +97,8 @@ def find_restaurants(queries: List[str], restaurants: Restaurants) -> Restaurant
 
   for restaurant in restaurants:
     pes = 0        
-    coincidencia = False        # si coincidència és True : restaurant coincideix amb la cerca. Pes és la seva prioritat.
-
     for query in queries:
-      coincidencia = False            
+      coincidencia = False      # si coincidència és True : restaurant coincideix amb la cerca. Pes és la seva prioritat.        
       for el in [restaurant.address.district, restaurant.address.neighbourhood, restaurant.address.address_name, restaurant.name]:
         fuzzy = find_near_matches(query, el, max_l_dist = 1)
         if len(fuzzy):
