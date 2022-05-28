@@ -118,10 +118,7 @@ def _text_rest(begin: int, end: int, possibilities):
 def find(update, context):
     """Cerca quins restaurants satisfan la cerca realitzada i n'escriu una llista numerada de 12 elements com a molt. També ofereix la possibilitat d'expandir fins a 6 possibilitats de més. ."""
 
-    if len(context.args) == 0:
-        context.bot.send_message(chat_id=update.effective_chat.id, text = "Ups, si no em dius què vols no podré trobar-te el millor per a tu. ;)")
-    
-    else:
+    if len(context.args) != 1:
         queries = [entry for entry in context.args]
         possibilities = find_restaurants(queries, list_restaurants)
         context.user_data['found'] = possibilities # actualitzem i guardem les possibilitats associades a l'últim found realitzat.
@@ -137,6 +134,12 @@ def find(update, context):
                 keyboard = [[InlineKeyboardButton("Veure més opcions", callback_data="more")]]
                 rm = InlineKeyboardMarkup(keyboard)
                 update.message.reply_text("No estàs convençuda/ut? Si vols més opcions clica a Veure més opcions." , reply_markup=rm)
+    
+    elif len(context.args) == 0: 
+        context.bot.send_message(chat_id=update.effective_chat.id, text = "Ups, si no em dius què vols no podré trobar-te el millor per a tu. ;)")
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text= "Ai, ai, ai, quantes coses vols a la vegada!")
+
 
 
 def info(update, context):
