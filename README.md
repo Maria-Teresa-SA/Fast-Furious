@@ -8,15 +8,19 @@ Per tal de crear el bot MetroNyam, s'han desenvolupat 4 mòduls:
 - `city.py` on es crea el graf de la ciutat, que ajunta un graf de carrers i el graf desenvolupat a metro.py. Aquest mòdul també conté funcions per visualitzar el graf i obtenir el camí més ràpid entre dues coordenades de barcelona.
 - `bot.py` el qual ajunta els tres mòduls anteriors i permet l'interacció amb l'usuari per poder-lo guiar des de la seva ubicació al restaurant desitjat
 
-## Mòdul restaurants.py
+### Mòdul restaurants.py
 
-## Mòdul metro.py
+### Mòdul metro.py
 
-## Mòdul city.py
+### Mòdul city.py
 
-## Mòdul bot.py
+### Mòdul bot.py
 
-##Començant
+## Començant
+
+### Prerequisits
+Per tal de garantitzar el funcionament del programa, hi ha una sèrie de llibreries que cal tenir descarregades, especificades a requirment.txt. Per tal de fer-ho, es pot executar la següent linia de commandes
+
 
 
 Per Laura Solà i Sílvia Fàbregas
