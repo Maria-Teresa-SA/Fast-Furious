@@ -32,6 +32,13 @@ Un cop fet això, ja es pot començar a utiltzar el bot
 
 
 
+## Example de funcionament del bot
+
+En les següents fotografies es pot veure un exemple de com funciona el bot si busques un restaurant ¿de sushi a sants?, en aquest cas ¿_______? i a algú des de la seva ubicació fins al restaurant
+
+POSAR FOTOS !!!
+
+
 ## Autores
 El projecte MetroNyam ha estat creat per Laura Solà i Sílvia Fàbregas, estudiants de Ciència i Enginyeria de Dades a la UPC com a part de l'assignatura Algorísmia i Programació 2. L'especificació del treball es pot trobar a https://github.com/jordi-petit/ap2-metro-nyam-2022
 
