@@ -40,7 +40,9 @@ POSAR FOTOS !!!
 
 
 ## Autores
-El projecte MetroNyam ha estat creat per Laura Solà i Sílvia Fàbregas, estudiants de Ciència i Enginyeria de Dades a la UPC com a part de l'assignatura Algorísmia i Programació 2. L'especificació del treball es pot trobar a https://github.com/jordi-petit/ap2-metro-nyam-2022
+El projecte MetroNyam ha estat creat per Laura Solà Garcia i Sílvia Fàbregas Salazar, estudiants de Ciència i Enginyeria de Dades a la UPC com a part de l'assignatura Algorísmia i Programació 2. L'especificació del treball es pot trobar a https://github.com/jordi-petit/ap2-metro-nyam-2022
 
+## Llicència
+Copyright © 2022 Laura Solà Garcia and Sílvia Fàbreagas Salazar.
 
-Per Laura Solà i Sílvia Fàbregas
+Aquest projecte està disponible sota els termes de la GNU General Public License (Llicència Pública General), versió 3. Vegeu LICENSE.md per a més informació.
