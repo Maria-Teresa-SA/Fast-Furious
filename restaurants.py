@@ -81,12 +81,12 @@ def find_restaurants(queries: List[str], restaurants: Restaurants) -> Restaurant
   """
 
   for i in range(len(queries)):
-    queries[i] = queries[i].title()   # millorar coincidències
+    queries[i] = queries[i].title()   # millorar coincidències. Majoria de paraules es troben en aquest format al fitxer de restaurants.
     
-  pesos = []
+  pesos = [] # pesos és una llista de parelles de [Restaurant, pes_associat]
 
   # només busquem dins les categories si hi ha un encert total (no fuzzysearch) per evitar problemes amb la fuzzysearch
-  #  i parelles de paraules com Sants i Restaurants.
+  # i parelles de paraules com Sants i Restaurants.
   buscar_categories = False
   for query in queries:
     for category in categories:
@@ -107,10 +107,9 @@ def find_restaurants(queries: List[str], restaurants: Restaurants) -> Restaurant
           break
 
       # en cas que hem definit que volem buscar dins les categories, si encara no ha coincidit
-      if not coincidencia and buscar_categories:
-        if query in restaurant.category:
-          coincidencia = True
-          pes += 2
+      if not coincidencia and buscar_categories and query in restaurant.category:
+        coincidencia = True
+        pes += 2
 
       # si una query no encaixa amb cap element del restaurant, no l'afegirem
       if not coincidencia: break
@@ -120,4 +119,4 @@ def find_restaurants(queries: List[str], restaurants: Restaurants) -> Restaurant
 
   pesos.sort(reverse=True, key=myFunc)
 
-  return [el[0] for el in pesos]
+  return [el[0] for el in pesos] 
