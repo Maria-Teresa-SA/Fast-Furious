@@ -6,24 +6,29 @@ from restaurants import *
 from random import randint
 import os
 
-
+# grafs
 street_graph = load_osmnx_graph("barcelona.grf")
 metro_graph = get_metro_graph()
-graph_city = build_city_graph(street_graph, metro_graph)
+city_graph = build_city_graph(street_graph, metro_graph)
+
+# restaurants
 list_restaurants = read_restaurants()
 
+# bromes
+jokes = pandas.read_csv("reddit-cleanjokes.csv", usecols=["ID", "Joke"], dtype={"ID": int, "Joke": str})
 
-diccionari_ajuda = {
-    "start" : "Inicia la conversa amb el bot.",
-    "help" : "Ofereix ajuda sobre les comandes disponibles. Si necessites informació addicional d'alguna d'aquestes comandes pots fer-ho fent help <comand>. Per exemple, /help help.",
+# diccionaris
+help_dic = {
+    "start" : "Inicia la conversa amb mi.",
+    "help" : "Ofereix ajuda sobre les comandes disponibles. Si necessites informació addicional d'alguna d'aquestes comandes pots fer-ho fent help <comanda>. Per exemple, /help help o /help info.",
     "author" : "Mostra el nom de les autores del projecte.",
-    "find" : """Cerca quins restaurants satisfan la cerca realitzada i n'escriu una llista numerada (12 elements com a molt). Quan s'ha realitzat una demanda, es pot requerir més informació 
-    sobre un restaurant concret utilitzant la comanda info (veure abaix). Per exemple: /find pizza.""",
-    "info" : "Mostra la informació sobre el restaurant especificat pel seu número (triat de la darrera llista numerada obtinguda amb /find).",
-    "guide" : """Mostra un mapa amb el camí més curt per anar del punt actual on et trobes al restaurant especificat pel seu número (triat de la darrera llista numerada obtinguda amb /find). Agafa la targeta de metro i a degustar!"""
+    "find" : """Cerca quins restaurants satisfan la cerca realitzada i n'escriu una llista numerada de 12 elements com a molt. També ofereix la possibilitat d'expandir fins a 6 possibilitats de més. Quan s'ha realitzat una demanda, es pot requerir més informació 
+    sobre un restaurant concret utilitzant la comanda info (veure /help info). Exemples de cerca: /find pizza, /find pasta sants.""",
+    "info" : "Mostra la informació sobre el restaurant especificat pel seu número (triat de la darrera llista numerada obtinguda amb /find). Exemple /info 4.",
+    "guide" : """Mostra un mapa amb el camí més curt per anar del punt actual on et trobes al restaurant especificat pel seu número (triat de la darrera llista numerada obtinguda amb /find) conjuntament amb una breu descripció del trajecte. Exemple: /guide 4. Agafa la targeta de metro i a degustar!"""
 }
 
-diccionari_emojis = {
+emojis_dic = {
     'Restaurants' : "🍽️",
     'Tablaos flamencs' : "💃",
     'Cocteleries' : "🍸",
@@ -34,10 +39,40 @@ diccionari_emojis = {
     'Teatres' : "🎭"
 }
 
+def _write_info_of_restaurant(restaurant):
+    """Retorna la informació del restaurant demanat per la comanda info."""
+
+    name = "Nom del restaurant: " + restaurant.name + "\n"
+    category = "Categoria: " + restaurant.category + " " + emojis_dic[restaurant.category] + "\n"
+    district = "Districte: " + restaurant.address.district + "\n"
+    neighbourhood = "Barri: " + restaurant.address.neighbourhood + "\n"
+    address = "Addressa: Carrer " + restaurant.address.address_name + " número " + restaurant.address.address_num + "\n"
+    return name + category + district + neighbourhood + address
+
+
+def _where(update, context):
+    """Guarda la ubicació de l'ususari quan aquest li passa."""
+
+    lat = update.effective_message.location.latitude
+    lon = update.effective_message.location.longitude
+    context.user_data["location"] = Coord(lon, lat)
+
+
+def _handler_more(update, context):
+    """S'encarrega de gestionar el cas en què es clica el botó de Veure més opcions."""
+
+    if not context.user_data["more"][0]:
+        context.user_data["more"][0] = True
+        context.bot.send_message(chat_id=update.effective_chat.id, text = context.user_data["more"][1])
+
+
 def start(update, context):
     """Funció que saluda i que s'executa quan el bot reb el missatge /start."""
-
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Hola! Què passa tronco! Benvingut a Fast and Furious. Si necessites ajuda, utilitza la comanda /help. Per funcionar correctament m'hauràs de compartir la teva ubicació. No pateixis, no penso vendre les teves dades ;)")
+    
+    context.bot.send_message(chat_id=update.effective_chat.id, text= """Hola! Benvingut/da a Fast and Furious.
+    Se t'ha cremat la paella 🥘 i no saps on menjar avui? Aquest bot t'ajudarà a trobar el lloc ideal i com arribar-hi.
+    Per funcionar correctament m'hauràs de compartir la teva ubicació. 📍 No pateixis, no penso vendre les teves dades ;).
+    A més a més, si necessites algun tipus d'ajuda, pots fer servir la comanda /help. """)
     username = update.effective_chat.username
     fullname =  update.effective_chat.first_name + ' ' + update.effective_chat.last_name
 
@@ -46,29 +81,25 @@ def help(update, context):
     """Ofereix ajuda a l'usuari i especificacions de les diferents accions que pot realitzar el bot."""
 
     if len(context.args) == 0:
+        # cas en què es demana la comanda /help simple
         context.bot.send_message(chat_id=update.effective_chat.id, text = 
-        """Hola, soc el Bot i soc aquí per ajudar! Aquest bot implementa les següents comandes:
-                1. start
-                2. find
-                3. info
-                4. guide
-                5. help
-                6. author
-        Si necessites informació addicional d'alguna d'aquestes comandes pots fer-ho fent help <comand>.
-        Molta sort navegant-me. ;)
+        """Hola, soc Fast & Furious (Ràpida i Furiosa) i soc aquí per ajudar! Aquest bot implementa les següents comandes:
+                1. /start - inici
+                2. /find - búsqueda restaurants
+                3. /info - informació restaurants
+                4. /guide - guiar a restaurant
+                5. /help - ajuda
+                6. /author - autores del projecte
+        Si necessites informació addicional d'alguna d'aquestes comandes pots fer-ho fent /help <comanda>. Exemple: /help info
+        Molta sort recorrent-me. 🚇
         """)
         
-    elif context.args[0] in diccionari_ajuda:
-        context.bot.send_message(chat_id=update.effective_chat.id, text = diccionari_ajuda[context.args[0]])
+    elif context.args[0] in help_dic:
+        # cas en què es demana /help <comanda> per una comanda vàlida
+        context.bot.send_message(chat_id=update.effective_chat.id, text = help_dic[context.args[0]])
     else:
+        # cas en què es demana /help <comanda> per una comanda no vàlida
         context.bot.send_message(chat_id=update.effective_chat.id, text = "No reconec aquesta comanda.")
-
-def where(update, context):
-    """Guarda la ubicació de l'ususari."""
-
-    lat = update.effective_message.location.latitude
-    lon = update.effective_message.location.longitude
-    context.user_data["location"] = Coord(lon, lat)
 
 def author(update, context):
     """Escriu pel xat el nom de les autores del projecte."""
@@ -76,105 +107,98 @@ def author(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text="Hola! Aquest bot l'han creat les millors programadores del món (pista: Sílvia Fàbregas i Laura Solà)")
 
-def text_twelve(begin: int, end: int, possibilities):
-    _text = ""
+def _text_rest(begin: int, end: int, possibilities):
+    """Retorna un text amb els restaurants requerits per l'entrada de la llista de possibilities."""
+
+    text = ""
     for i in range(begin, end):
-        _text += str(i + 1) + " " + diccionari_emojis[possibilities[i].category] + " - " + possibilities[i].name + '\n'
-    return _text
+        text += str(i + 1) + " " + emojis_dic[possibilities[i].category] + " - " + possibilities[i].name + '\n'
+    return text
 
 def find(update, context):
-    """Troba els restaurants que compleixen les condicions requerides per l'usuari i imprimeix les opcions disponibles per pantalla (màxim 12 opcions)."""
+    """Cerca quins restaurants satisfan la cerca realitzada i n'escriu una llista numerada de 12 elements com a molt. També ofereix la possibilitat d'expandir fins a 6 possibilitats de més. ."""
 
     if len(context.args) == 0:
-        context.bot.send_message(chat_id=update.effective_chat.id, text = "Ups, si no em dius què vols no podré trobar-te el millor per tu. ;)")
+        context.bot.send_message(chat_id=update.effective_chat.id, text = "Ups, si no em dius què vols no podré trobar-te el millor per a tu. ;)")
     
     else:
-        queries = []
-        for entry in context.args: 
-            queries.append(str(entry))
+        queries = [entry for entry in context.args]
         possibilities = find_restaurants(queries, list_restaurants)
-        # actualitzem i guardem les possibilitats associades a l'últim found realitzat.
-        context.user_data['found'] = possibilities
+        context.user_data['found'] = possibilities # actualitzem i guardem les possibilitats associades a l'últim found realitzat.
         num_outputs  = min(len(possibilities), 12)
         if num_outputs == 0:
             context.bot.send_message(chat_id=update.effective_chat.id, text= "Oh no... 😢 No s'ha trobat cap restaurant amb aquesta entrada... Prova-ho amb una altra... 😊")       
         else:            
-            context.bot.send_message(chat_id=update.effective_chat.id, text= text_twelve(0, num_outputs, possibilities))
-            if(len(possibilities) > 12):
-                more = text_twelve(12, 12 + min(len(possibilities)-12, 6), possibilities)
-                context.user_data["more"] = [False, more]
-                keyboard = [[InlineKeyboardButton("Veure més opcions", callback_data="Sí")]]
+            context.bot.send_message(chat_id=update.effective_chat.id, text= _text_rest(0, num_outputs, possibilities))
+            context.user_data["more"] = [False, ""] # encara no s'ha clicat al botó de more
+            if len(possibilities) > 12:
+                more = _text_rest(12, 12 + min(len(possibilities)-12, 6), possibilities) # guarda el text de les opcions de més
+                context.user_data["more"] = [False, more] 
+                keyboard = [[InlineKeyboardButton("Veure més opcions", callback_data="more")]]
                 rm = InlineKeyboardMarkup(keyboard)
-                update.message.reply_text("No estàs convençuda? Si vole veure més opcions clica a Veure més opcions." , reply_markup=rm)
+                update.message.reply_text("No estàs convençuda/ut? Si vols més opcions clica a Veure més opcions." , reply_markup=rm)
 
 
-def handler_more(update, context):
-    data_callback = update.callback_query.data
-    update.callback_query.answer() 
-    if data_callback == "Sí":
-        context.user_data["more"][0] = True
-        context.bot.send_message(chat_id=update.effective_chat.id, text = context.user_data["more"][1])
-
-                    
-
-def write_info_of_restaurant(restaurant):
-    nom = "Nom del restaurant: " + restaurant.name + "\n"
-    categoria = "Categoria: " + restaurant.category + " " + diccionari_emojis[restaurant.category] + "\n"
-    districte = "Districte: " + restaurant.address.district + "\n"
-    barri = "Barri: " + restaurant.address.neighbourhood + "\n"
-    adressa = "Addressa: Carrer " + restaurant.address.address_name + " número " + restaurant.address.address_num + "\n"
-    return nom+categoria+districte+barri+adressa
-
-
-# altres errors a considerar: primer argument d'entrada no és un enter
 def info(update, context):
+    """"Mostra la informació sobre el restaurant especificat pel seu número (triat de la darrera llista numerada obtinguda amb /find)."""
+
     if 'found' in context.user_data:
         possibilities = context.user_data['found']
         try:
-            entrada = int(context.args[0])
-            if 0 < entrada <= 12 + (context.user_data["more"][0])*min(6, len(possibilities)-12):
-                restaurant = possibilities[entrada - 1]
-                _text = write_info_of_restaurant(restaurant)
-                context.bot.send_message(chat_id=update.effective_chat.id, text= _text)
-
+            entry = int(context.args[0])
+            # assegurar-se que l'entrada es troba entre el mínim i el màxim, que depèn de si s'han demanat més opcions o no
+            if 0 < entry <= min(12 + (context.user_data["more"][0])*min(6, len(possibilities) - 12), len(possibilities)): 
+                restaurant = possibilities[entry-1]
+                context.bot.send_message(chat_id=update.effective_chat.id, text= _write_info_of_restaurant(restaurant))
             else:
-                context.bot.send_message(chat_id=update.effective_chat.id, text= 'Prova amb un número dins el rang de possibilitats.')
-        except Exception as e:
-            print(e)
-            context.bot.send_message(chat_id=update.effective_chat.id, text = '💣')
+                context.bot.send_message(chat_id=update.effective_chat.id, text= 'Ups. Prova amb un número dins el rang de possibilitats.')
+        except Exception:
+            context.bot.send_message(chat_id=update.effective_chat.id, text = 'Ups. L\'entrada no és vàlida...')
             
     else:
-        # print(e)
-        context.bot.send_message(chat_id=update.effective_chat.id, text = 'Ups. Prova a fer find primer... Si vols saber què fa la comanda info fes /help info.')
+        context.bot.send_message(chat_id=update.effective_chat.id, text = 'Ups. Prova a fer /find primer... Si vols saber què fa la comanda /info fes /help info.')
 
     
 
-# recordar checkejar que l'entrada és un enter
 def guide(update, context):
+    """Mostra un mapa amb el camí més curt per anar del punt actual on et trobes al restaurant especificat pel seu número
+    (triat de la darrera llista numerada obtinguda amb /find) conjuntament amb una breu descripció del trajecte."""
+
     try:
         if 'found' in context.user_data:
             possibilities = context.user_data['found']
-            entrada = int(context.args[0])
-            if entrada <= len(possibilities):
+            entry = int(context.args[0])
 
-                filename = "%d.png" % randint(0, 9999999)
-                coordinate_restaurant = possibilities[entrada - 1].position
+            if 0 < entry <= min(12 + (context.user_data["more"][0])*min(6, len(possibilities) - 12), len(possibilities)):
+                context.bot.send_message(chat_id=update.effective_chat.id, text="Això pot trigar uns segons...⌛\nAquí tens una broma per l'espera...")
+                
+                # trobar el camí més curt
+                coordinate_restaurant = possibilities[entry - 1].position
                 current_location = context.user_data["location"]
-                path = find_path(street_graph, graph_city, coordinate_restaurant, current_location)
-                plot_path(graph_city, path, filename)
+                path = find_path(street_graph, city_graph, current_location, coordinate_restaurant)
 
-                context.bot.send_message(chat_id=update.effective_chat.id, text="Això pot trigar uns segons...⌛")
-                context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(filename, "rb"))
+                # broma
+                context.bot.send_message(chat_id=update.effective_chat.id, text= jokes.values[randint(0, 99999)%1623][1])
+
+                # guardar camí a fitxer
+                filename = "%d.png" % randint(0, 9999999)   # ho guardem a un fitxer de nom un enter aleatori perquè no hi hagi solapament amb diferents usuaris.
+                plot_path(city_graph, path, filename)
+
+                # mostrar els resultats obtinguts a l'usuari
+                context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(filename, "rb"))    # imatge de recorregut
+                context.bot.send_message(chat_id=update.effective_chat.id, text = get_path_description(city_graph, path))   # descripció recorregut
+                context.bot.send_message(chat_id=update.effective_chat.id, text = "Temps aproximat de trajecte: " + str(get_time_path(city_graph,path)) + " min.\nBona sort nano! RUm RUm.") # temps de recorregut
                 os.remove(filename)
+
             else:
                 context.bot.send_message(chat_id=update.effective_chat.id,
-                                     text='Ups. Prova amb un número dins el rang de possibilitats.')
+                                        text='Ups. Prova amb un número dins el rang de possibilitats...')
 
         else:
             context.bot.send_message(chat_id=update.effective_chat.id,
                                 text='Ups. Prova a fer find primer.')
     except:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Sisplau, envia'm la teva ubicació perquè pugui guiar-te.")
+        context.bot.send_message(chat_id=update.effective_chat.id, text="Sisplau, envia'm la teva ubicació 📍 perquè pugui guiar-te.")
 
 
 
@@ -194,10 +218,8 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler('info', info))
     dispatcher.add_handler(CommandHandler('guide', guide))
     dispatcher.add_handler(CommandHandler('author', author))
-    dispatcher.add_handler(MessageHandler(Filters.location, where))
-    dispatcher.add_handler(CallbackQueryHandler(handler_more))
-
-
+    dispatcher.add_handler(MessageHandler(Filters.location, _where))
+    dispatcher.add_handler(CallbackQueryHandler(_handler_more))
 
     # engega el bot
     updater.start_polling()
