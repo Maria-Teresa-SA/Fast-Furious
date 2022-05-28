@@ -16,4 +16,7 @@ Per tal de crear el bot MetroNyam, s'han desenvolupat 4 mòduls:
 
 ## Mòdul bot.py
 
+##Començant
+
+
 Per Laura Solà i Sílvia Fàbregas
