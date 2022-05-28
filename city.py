@@ -115,7 +115,8 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
 #   Path   #
 ############
 
-def get_metro_path_description(g: CityGraph, p: Path, i: int):
+def get_metro_path_description(g: CityGraph, p: Path, i: int) -> Tuple[int, str]:
+    """Retorna el valor actualitzat de la variable i i la descripció del trajecte realitzat en metro."""
     
     first_station = g.nodes[p[i]]["name"]
     metro_line = g.nodes[p[i]]["line"]
@@ -124,50 +125,60 @@ def get_metro_path_description(g: CityGraph, p: Path, i: int):
     while current_edge_type == "Tram":
         i += 1
         current_edge_type = g[p[i]][p[i+1]]["dtype"]
+        
     last_station = g.nodes[p[i]]["name"]
     description = "\n🚇 Ves des de l'estació " + first_station + \
         " fins a " + last_station + " amb la línia " + metro_line + ". "
     return [i, description]
 
 
-def get_path_description(g: CityGraph, p: Path):
+def get_path_description(g: CityGraph, p: Path) -> str:
+    """Retorna la descripció del path p. S'indiquen quins trams es fan caminant, quins en metro (i línia associada)
+    i els accessos pels quals s'ha d'accedir a aquests."""
+    
     description = ""               # descripció del path
     i = 0                           # posició en el path
     
     while i < (len(p)-1):
         current_edge_type = g[p[i]][p[i+1]]["dtype"]    # tipus de l'aresta en la qual ens trobem
 
+        # cas 1 : tram carrer
         if current_edge_type == "Street":
             starting_street = g[p[i]][p[i+1]]["name"]
+            
             while i < len(p)-2 and current_edge_type == "Street":
                 i += 1
                 current_edge_type = g[p[i]][p[i+1]]["dtype"]
+                
             ending_street = g[p[i-2]][p[i-1]]["name"]
-            part = "' " if  starting_street[0] in ["A", "E", "I", "O", "U"] else "e "
+            el = "' " if  starting_street[0] in ["A", "E", "I", "O", "U"] else "e " # tractament de paraules començades per vocal
             if starting_street != ending_street:
-                description += "🚶 Camina des d" + part + starting_street + " fins a " + ending_street + ". "
-            else:
-                description += "🚶 Camina per " + starting_street + ". "
+                description += "🚶 Camina des d" + el + starting_street + " fins a " + ending_street + ". "
+            else: description += "🚶 Camina per " + starting_street + ". "
             
+        # cas 2 : tram accés (per fer un tram en metro sempre s'ha d'entrar i sortir per un accés
         if current_edge_type == "Access":
             metro_entry = g.nodes[p[i]]["name"][0]
             description = description + "Entra al metro per l'accés " + metro_entry + ". "
             i += 1
             current_edge_type = g[p[i]][p[i+1]]["dtype"]
-            # s'entra per un accés i es surt per un accés
+
             while current_edge_type != "Access":
                 metro_path = get_metro_path_description(g, p, i)
                 i = metro_path[0]
-                description = description + metro_path[1]
+                description += metro_path[1]
+                
                 if g[p[i]][p[i+1]]["dtype"] == "Enllaç":
                     description += "Fes un transbordament. "
                     i += 1
+                    
                 current_edge_type = g[p[i]][p[i+1]]["dtype"]
             i += 1
             metro_exit = g.nodes[p[i]]["name"][0]
             description = description + "Surt del metro per l'accés " + metro_exit + ".\n"
+        
         i += 1
-
+            
     return description
 
 def get_time_path(g: CityGraph, p: Path) -> int:
@@ -193,7 +204,6 @@ def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path:
 #   Imatges     #
 #################
 
-# SHOW TOT EL GRAPH
 def show(g: CityGraph) -> None:
     """Mostra una imatge del citygraph."""
 
@@ -201,7 +211,6 @@ def show(g: CityGraph) -> None:
     plt.show()
 
 
-# PLOT DE TOT EL GRAPH
 def plot(g: CityGraph, filename: str) -> None:
     """Guarda al fitxer "filename" un plot del graf de ciutat amb la ciutat de Barcelona de fons. S'usa staticmap."""
 
@@ -221,7 +230,6 @@ def plot(g: CityGraph, filename: str) -> None:
     image.save(filename)
 
     
-# p path és una llista de nodes que tenen
 def plot_path(g: CityGraph, p: Path, filename: str) -> None:
     """Guarda al fitxer "filename" un plot del path p amb la ciutat de Barcelona de fons. S'usa staticmap"""
 
