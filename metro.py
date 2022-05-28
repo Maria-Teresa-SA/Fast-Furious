@@ -13,7 +13,7 @@ from haversine import haversine, Unit                                 # calcular
 #   Tipus de dades   #
 ######################
 
-Coord = namedtuple('Coord', ['long', 'lat']) # (longitude, latitude)
+Coord: TypeAlias = namedtuple('Coord', ['long', 'lat']) # (longitude, latitude)
 
 @dataclass
 class Station:
