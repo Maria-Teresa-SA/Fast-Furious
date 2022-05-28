@@ -14,7 +14,7 @@ categories = ['Restaurants', 'Tablaos flamencs', 'Cocteleries','Xampanyeries', '
 ######################
 
 # (longitud, latitud)
-Coord = namedtuple('Coord', ['x', 'y']) # type = Tuple[float, float]
+Coord : TypeAlias = namedtuple('Coord', ['x', 'y']) # type = Tuple[float, float]
 
 @dataclass
 class Address:
@@ -31,7 +31,7 @@ class Restaurant:
   category : TypeAlias = str # tipus de restaurant
   position: TypeAlias = Coord # coordenades del restaurant
 
-Restaurants = List[Restaurant]
+Restaurants : TypeAlias =  List[Restaurant]
 
 
 #############################
