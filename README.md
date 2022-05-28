@@ -18,8 +18,8 @@ Per tal de crear el bot MetroNyam, s'han desenvolupat 4 mòduls:
 
 ## Començant
 
-### Prerequisits
-Per tal de garantitzar el funcionament del programa, hi ha una sèrie de llibreries que cal tenir descarregades, especificades a requirment.txt. Per tal de fer-ho, es pot executar la següent linia de commandes
+### No se quin titol posar no m'agarada fer aixo
+Per tal de garantitzar el funcionament del programa, hi ha una sèrie de llibreries que cal tenir descarregades, especificades a `requirments.txt`. Per tal de fer-ho, es pot executar la següent linia de commandes
 ``` 
 pip3 install -r requirements.txt 
 python3 bot.py 
