@@ -18,7 +18,7 @@ Per tal de crear el bot MetroNyam, s'han desenvolupat 4 mòduls:
 
 ## Començant
 
-### No se quin titol posar no m'agarada fer aixo
+### Executar el codi
 Per tal d'utilitzar el bot creat, cal tenir descarregat Python a l'ordinador, i Telegram o bé a l'ordinador o bé al mòbil. A més, cal tenir descarregades les llibreries especificades al arxiu `requeriments.txt`.
 
 Per començar a utilitzar el bot cal escriure la següent línia de comandes a la terminal
@@ -28,7 +28,7 @@ python3 bot.py
 ```
 Un cop fet això, ja es pot començar a utiltzar el bot
 
-### Utilització del bot
+### Inicialitzar el bot
 
 
 
