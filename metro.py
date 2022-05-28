@@ -71,7 +71,7 @@ def read_accesses() -> Accesses:
 
     cols = ['NOM_ACCES', 'NOM_ESTACIO', 'NOM_LINIA', 'GEOMETRY'] #columnes que guardem
     data_taula_accesses = pd.read_csv("accessos_estacio_linia.csv", usecols=cols, keep_default_na=False, dtype={
-                                     "NOM_ACCES": str, "NOM_ESTACIO": str, "NOM_LINIA": str, "GEOMETRY": str})
+                                     cols[0]: str, cols[1]: str, cols[2]: str, cols[3]: str})
     
     accesses = []
     for i, row in data_table_accesses.iterrows():
