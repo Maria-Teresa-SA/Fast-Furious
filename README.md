@@ -19,11 +19,21 @@ Per tal de crear el bot MetroNyam, s'han desenvolupat 4 mòduls:
 ## Començant
 
 ### No se quin titol posar no m'agarada fer aixo
-Per tal de garantitzar el funcionament del programa, hi ha una sèrie de llibreries que cal tenir descarregades, especificades a `requirments.txt`. Per tal de fer-ho, es pot executar la següent linia de commandes
+Per tal d'utilitzar el bot creat, cal tenir descarregat Python a l'ordinador, i Telegram o bé a l'ordinador o bé al mòbil. A més, cal tenir descarregades les llibreries especificades al arxiu `requeriments.txt`.
+
+Per començar a utilitzar el bot cal escriure la següent línia de comandes a la terminal
 ``` 
 pip3 install -r requirements.txt 
 python3 bot.py 
 ```
+Un cop fet això, ja es pot començar a utiltzar el bot
+
+### Utilització del bot
+
+
+
+## Autores
+El projecte MetroNyam ha estat creat per Laura Solà i Sílvia Fàbregas, estudiants de Ciència i Enginyeria de Dades a la UPC com a part de l'assignatura Algorísmia i Programació 2. L'especificació del treball es pot trobar a https://github.com/jordi-petit/ap2-metro-nyam-2022
 
 
 Per Laura Solà i Sílvia Fàbregas
