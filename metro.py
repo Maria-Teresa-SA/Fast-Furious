@@ -13,7 +13,7 @@ from haversine import haversine, Unit                                 # calcular
 #   Tipus de dades   #
 ######################
 
-Coord = namedtuple('Coord', ['x', 'y']) # (longitude, latitude)
+Coord = namedtuple('Coord', ['long', 'lat']) # (longitude, latitude)
 
 @dataclass
 class Station:
@@ -53,11 +53,11 @@ MetroGraph: TypeAlias = nx.Graph
 def read_stations() -> Stations:
     """Llegeix un fitxer csv amb la informació requerida de les estacions de metro de Barcelona i en retorna una llista d'aquestes."""
 
-    c_g = ["NOM_ESTACIO", "NOM_LINIA", "GEOMETRY", "COLOR_LINIA"] # columnes que guardem
-    taula_dades = pd.read_csv("estacions_linia.csv", usecols = c_g, keep_default_na=False, dtype={c_g[0]: str, c_g[1]: str, c_g[2]: str, c_g[3]: str})
+    cols = ["NOM_ESTACIO", "NOM_LINIA", "GEOMETRY", "COLOR_LINIA"] # columnes que guardem
+    data_table_stations = pd.read_csv("estacions_linia.csv", usecols = cols, keep_default_na=False, dtype={cols[0]: str, cols[1]: str, cols[2]: str, cols[3]: str})
     
     stations = []
-    for i, row in taula_dades.iterrows():
+    for i, row in data_table_stations.iterrows():
         p = row["GEOMETRY"].strip('POINT( )').split()
         s = Station(row["NOM_ESTACIO"], row["NOM_LINIA"], Coord(float(p[0]), float(p[1])), '#' + row["COLOR_LINIA"])
         stations.append(s)
@@ -69,11 +69,12 @@ def read_stations() -> Stations:
 def read_accesses() -> Accesses:
     """Llegeix un fitxer csv amb la informació requerida dels accessos de metro de Barcelona i en retorna una llista d'aquests."""
 
-    taula_accessos = pd.read_csv("accessos_estacio_linia.csv", usecols=['NOM_ACCES', 'NOM_ESTACIO', 'NOM_LINIA', 'GEOMETRY'], keep_default_na=False, dtype={
+    cols = ['NOM_ACCES', 'NOM_ESTACIO', 'NOM_LINIA', 'GEOMETRY'] #columnes que guardem
+    data_taula_accesses = pd.read_csv("accessos_estacio_linia.csv", usecols=cols, keep_default_na=False, dtype={
                                      "NOM_ACCES": str, "NOM_ESTACIO": str, "NOM_LINIA": str, "GEOMETRY": str})
     
     accesses = []
-    for i, row in taula_accessos.iterrows():
+    for i, row in data_table_accesses.iterrows():
         p = row['GEOMETRY'].strip('POINT ( )').split()  # type: List[str]
         a = Access(row['NOM_ACCES'], row['NOM_ESTACIO'], Coord(float(p[0]), float(p[1])), 'black')
         accesses.append(a)
@@ -98,7 +99,7 @@ def set_time(dtype: str, dist: float) -> float:
     if dtype == "Street": return dist/83
     elif dtype == "Tram": return dist/433.3
     elif dtype == "Access": return dist/50
-    elif dtype == "Enllaç": return 2.5 + dist/66.7
+    elif dtype == "Transfer": return 2.5 + dist/66.7
 
 
 def get_metro_graph() -> MetroGraph:
@@ -123,7 +124,7 @@ def get_metro_graph() -> MetroGraph:
         # afegir enllaços de metro (ARESTES)
         if s.name in repeated_stations.keys():
             for s2 in repeated_stations[s.name]:
-                G.add_edge(id, s2, dtype = "Enllaç", time = set_time("Enllaç", haversine(s.coord, G.nodes[s2]["position"], unit=Unit.METERS)), color = "black")
+                G.add_edge(id, s2, dtype = "Transfer", time = set_time("Transfer", haversine(s.coord, G.nodes[s2]["position"], unit=Unit.METERS)), color = "black")
             repeated_stations[s.name].append(id)
         else: repeated_stations[s.name] = [id]
 
