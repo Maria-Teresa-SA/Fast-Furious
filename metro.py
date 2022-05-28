@@ -70,8 +70,7 @@ def read_accesses() -> Accesses:
     """Llegeix un fitxer csv amb la informació requerida dels accessos de metro de Barcelona i en retorna una llista d'aquests."""
 
     cols = ['NOM_ACCES', 'NOM_ESTACIO', 'NOM_LINIA', 'GEOMETRY'] #columnes que guardem
-    data_taula_accesses = pd.read_csv("accessos_estacio_linia.csv", usecols=cols, keep_default_na=False, dtype={
-                                     cols[0]: str, cols[1]: str, cols[2]: str, cols[3]: str})
+    data_taula_accesses = pd.read_csv("accessos_estacio_linia.csv", usecols=cols, keep_default_na=False, dtype={cols[0]: str, cols[1]: str, cols[2]: str, cols[3]: str})
     
     accesses = []
     for i, row in data_table_accesses.iterrows():
@@ -86,7 +85,7 @@ def read_accesses() -> Accesses:
 #   Graf metro   #
 ##################
 
-# Pre: el tipus serà "Street", "Tram", "Enllaç" o "Access" i la distància està en metres
+# Pre: el tipus és "Street", "Tran", "Access" o "Transfer" i la distància està en metres
 def set_time(dtype: str, dist: float) -> float:
     """Funció que retorna el temps que es triga en recórrer una distància (d'un graf) depenent del tipus d'aresta (Street, Tram, Enllaç, Accés).
     
@@ -112,10 +111,11 @@ def get_metro_graph() -> MetroGraph:
     
     stations, accesses = read_stations(), read_accesses()
     n, m = len(stations), len(accesses)    
-    repeated_stations = {}                             # diccionari que ens connectarà amb un Enllaç els nodes estació que comparteixen parada però no línia.
+    repeated_stations = {} # type = Dict[str, List[int]]
+    # diccionari que ens connectarà amb un Enllaç els nodes estació que comparteixen parada però no línia.
     j = 0
 
-    for id in range(0, n):
+    for id in range(n):
         s = stations[id]
 
         # afegir estacions de metro (NODES)
@@ -174,7 +174,7 @@ def show(g: MetroGraph) -> None:
 
 
 # desa el graf com a imatge amb el mapa de la ciutat com a fons en l'arxiu especificat a filename
-# usar staticmaps
+# usar staticmap
 def plot(g: MetroGraph, filename: str) -> None:
     """Guarda al fitxer "filename" un plot del graf de metros amb la ciutat de Barcelona de fons. S'usa staticmap."""
 
