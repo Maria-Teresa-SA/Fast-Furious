@@ -11,10 +11,26 @@ Per tal de crear el bot MetroNyam, s'han desenvolupat 4 mòduls:
 ### Mòdul restaurants.py
 
 ### Mòdul metro.py
+En aquest mòdul es crea el graf que conté les diferents línies i estacions de metro i els seus corresponents accessos. Aquesta informació s'ha descarregat dels següents fitxers de dades:
+- https://raw.githubusercontent.com/jordi-petit/ap2-metro-nyam-2022/main/data/blob/main/estacions.csv (estacions de metro)
+- https://raw.githubusercontent.com/jordi-petit/ap2-metro-nyam-2022/main/data/blob/main/accessos.csv (accessos de metro)
+
+El graf de metro és un graf no dirigit de `networkx`. Es poden diferenciar dos tipus de nodes, les estacions i els accessos; i tres tipus d'arestes, els trams de metro, els transbordaments, i els accessos (uneixen un node de tipus accés amb un de tipus estació). EXPLICAR ELS DIFERENTS ATRIBUTS DE NODES I ARESTES
+
+D'altra banda, aquest mòdul també permet visualitzar gràficament el graf de metro creat. Això es pot fer amb dues funcions diferents:
+```python3
+def show(g: MetroGraph) -> None: ...
+def plot(g: MetroGraph, filename: str) -> None: ...
+```
+La primera __________________-
+
+En canvi la segona funció guarda una imatge en el fitxer desitjat on es pot veure el graf de metro representat sobre un mapa de la ciutat de barcelona.
 
 ### Mòdul city.py
 
 ### Mòdul bot.py
+En aquest mòdul es crea el graf de la ciutat de Barcelona, resultat de la unió del graf de les línies de metro, construit a `metro.py`, i del graf de carrers de barcelona, obtingut amb el mòdul `osmnx `. Aquest graf és el que utiltzem per trobar el camí més ràpid entre dues coordenades. 
+
 
 ## Començant
 
