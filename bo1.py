@@ -39,18 +39,22 @@ emojis_dic = {
     'Teatres' : "🎭"
 }
 
-def _write_info_of_restaurant(restaurant):
+##############################
+#   Funcions implementades   #
+##############################
+
+def _write_info_of_restaurant(restaurant: Restaurant) -> str:
     """Retorna la informació del restaurant demanat per la comanda info."""
 
     name = "Nom del restaurant: " + restaurant.name + "\n"
     category = "Categoria: " + restaurant.category + " " + emojis_dic[restaurant.category] + "\n"
     district = "Districte: " + restaurant.address.district + "\n"
     neighbourhood = "Barri: " + restaurant.address.neighbourhood + "\n"
-    address = "Addressa: Carrer " + restaurant.address.address_name + " número " + restaurant.address.address_num + "\n"
+    address = "Adreça: Carrer " + restaurant.address.address_name + " número " + restaurant.address.address_num + "\n"
     return name + category + district + neighbourhood + address
 
 
-def _where(update, context):
+def _where(update, context) -> None:
     """Guarda la ubicació de l'ususari quan aquest li passa."""
 
     lat = update.effective_message.location.latitude
@@ -58,13 +62,32 @@ def _where(update, context):
     context.user_data["location"] = Coord(lon, lat)
 
 
-def _handler_more(update, context):
+def _handler_more(update, context) -> None:
     """S'encarrega de gestionar el cas en què es clica el botó de Veure més opcions."""
 
     if not context.user_data["more"][0]:
         context.user_data["more"][0] = True
         context.bot.send_message(chat_id=update.effective_chat.id, text = context.user_data["more"][1])
 
+def _text_rest(begin: int, end: int, possibilities: List[Restaurant]) -> str:
+    """Retorna un text amb els restaurants requerits per l'entrada de la llista de possibilities."""
+
+    text = ""
+    for i in range(begin, end):
+        text += str(i + 1) + " " + emojis_dic[possibilities[i].category] + " - " + possibilities[i].name + '\n'
+    return text
+
+
+def _max_possibilities(context) -> int:
+    """Retorna el número fins el qual es pot obtenir informació o guia."""
+    
+    possibilities = context.user_data['found']
+    return min(12 + (context.user_data["more"][0])*min(6, len(possibilities) - 12), len(possibilities))
+
+
+########################
+#   Comandes del xat   #
+########################
 
 def start(update, context):
     """Funció que saluda i que s'executa quan el bot reb el missatge /start."""
@@ -105,18 +128,11 @@ def author(update, context):
     """Escriu pel xat el nom de les autores del projecte."""
 
     context.bot.send_message(chat_id=update.effective_chat.id,
-                             text="Hola! Aquest bot l'han creat les millors programadores del món (pista: Sílvia Fàbregas i Laura Solà)")
-
-def _text_rest(begin: int, end: int, possibilities):
-    """Retorna un text amb els restaurants requerits per l'entrada de la llista de possibilities."""
-
-    text = ""
-    for i in range(begin, end):
-        text += str(i + 1) + " " + emojis_dic[possibilities[i].category] + " - " + possibilities[i].name + '\n'
-    return text
+                             text="Hola! Aquest bot l'han creat Sílvia Fàbregas i Laura Solà.")
 
 def find(update, context):
-    """Cerca quins restaurants satisfan la cerca realitzada i n'escriu una llista numerada de 12 elements com a molt. També ofereix la possibilitat d'expandir fins a 6 possibilitats de més. ."""
+    """Cerca quins restaurants satisfan la cerca realitzada i n'escriu una llista numerada de 12 elements com a molt. 
+    També ofereix la possibilitat d'expandir fins a 6 possibilitats de més. ."""
 
     if len(context.args) != 1:
         queries = [entry for entry in context.args]
@@ -132,11 +148,12 @@ def find(update, context):
                 more = _text_rest(12, 12 + min(len(possibilities)-12, 6), possibilities) # guarda el text de les opcions de més
                 context.user_data["more"] = [False, more] 
                 keyboard = [[InlineKeyboardButton("Veure més opcions", callback_data="more")]]
-                rm = InlineKeyboardMarkup(keyboard)
-                update.message.reply_text("No estàs convençuda/ut? Si vols més opcions clica a Veure més opcions." , reply_markup=rm)
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                update.message.reply_text("No estàs convençuda/ut? Si vols més opcions clica a Veure més opcions." , reply_markup=reply_markup)
     
     elif len(context.args) == 0: 
-        context.bot.send_message(chat_id=update.effective_chat.id, text = "Ups, si no em dius què vols no podré trobar-te el millor per a tu. ;)")
+        context.bot.send_message(chat_id=update.effective_chat.id, text = """Ups, si no em dius què vols no podré trobar-te el millor per a tu. ;)
+        Si vols saber què fa la comanda find, fes /help find.""")
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text= "Ai, ai, ai, quantes coses vols a la vegada!")
 
@@ -150,7 +167,7 @@ def info(update, context):
         try:
             entry = int(context.args[0])
             # assegurar-se que l'entrada es troba entre el mínim i el màxim, que depèn de si s'han demanat més opcions o no
-            if 0 < entry <= min(12 + (context.user_data["more"][0])*min(6, len(possibilities) - 12), len(possibilities)): 
+            if 0 < entry <= _max_possibilities(context): 
                 restaurant = possibilities[entry-1]
                 context.bot.send_message(chat_id=update.effective_chat.id, text= _write_info_of_restaurant(restaurant))
             else:
@@ -172,7 +189,7 @@ def guide(update, context):
             possibilities = context.user_data['found']
             entry = int(context.args[0])
 
-            if 0 < entry <= min(12 + (context.user_data["more"][0])*min(6, len(possibilities) - 12), len(possibilities)):
+            if 0 < entry <= _max_possibilities(context):
                 context.bot.send_message(chat_id=update.effective_chat.id, text="Això pot trigar uns segons...⌛\nAquí tens una broma per l'espera...")
                 
                 # trobar el camí més curt
@@ -193,15 +210,13 @@ def guide(update, context):
                 context.bot.send_message(chat_id=update.effective_chat.id, text = "Temps aproximat de trajecte: " + str(get_time_path(city_graph,path)) + " min.\nBona sort nano! RUm RUm.") # temps de recorregut
                 os.remove(filename)
 
-            else:
-                context.bot.send_message(chat_id=update.effective_chat.id,
-                                        text='Ups. Prova amb un número dins el rang de possibilitats...')
+            else: 
+                context.bot.send_message(chat_id=update.effective_chat.id, text='Ups. Prova amb un número dins el rang de possibilitats.')
 
-        else:
-            context.bot.send_message(chat_id=update.effective_chat.id,
-                                text='Ups. Prova a fer find primer.')
+        else: 
+            context.bot.send_message(chat_id=update.effective_chat.id, text='Ups. Prova a fer find primer.')
     except:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Sisplau, envia'm la teva ubicació 📍 perquè pugui guiar-te.")
+        context.bot.send_message(chat_id=update.effective_chat.id, text="Ups, alguna cosa ha fallat. Sisplau, envia'm la teva ubicació 📍 perquè pugui guiar-te.")
 
 
 
@@ -221,6 +236,7 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler('info', info))
     dispatcher.add_handler(CommandHandler('guide', guide))
     dispatcher.add_handler(CommandHandler('author', author))
+    
     dispatcher.add_handler(MessageHandler(Filters.location, _where))
     dispatcher.add_handler(CallbackQueryHandler(_handler_more))
 
