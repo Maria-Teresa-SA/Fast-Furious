@@ -64,7 +64,7 @@ Ara el bot ja està creat, i per utilitzar-lo escriu les següents comandes a la
 pip3 install -r requirements.txt 
 python3 bot.py 
 ```
-
+Ara ja podràs parlar des de [Telegram](https://telegram.org/) amb el bot i que et guiï al restaurant que prefereixis!
 
 
 ## Example de funcionament del bot
