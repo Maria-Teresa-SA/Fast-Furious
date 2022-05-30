@@ -45,20 +45,26 @@ Un petit resum d'aquestes primeres són:
 
 ## Començant
 
-### Executar el codi
-Per tal d'utilitzar el bot creat, cal tenir descarregat Python a l'ordinador, i Telegram o bé a l'ordinador o bé al mòbil. A més, cal tenir descarregades les llibreries especificades al arxiu `requeriments.txt`.
+### Prerequisits
+Per tal d'utilitzar el bot creat, cal tenir descarregat [Python](https://www.python.org/) a l'ordinador, i [Telegram](https://telegram.org/) o bé a l'ordinador o bé al mòbil. A més, cal tenir descarregades les llibreries especificades al arxiu `requeriments.txt`.
 
-A més cal tenir descarregades en l'ordinador les bases de dades ______________ (no se si aixo va dins de requiriments idk)
+També cal tenir descarregats els fitxers de dades que utilitzen els diferents mòduls. Aquests són:
+- https://raw.githubusercontent.com/jordi-petit/ap2-metro-nyam-2022/main/data/blob/main/estacions.csv
+- https://raw.githubusercontent.com/jordi-petit/ap2-metro-nyam-2022/main/data/blob/main/accessos.csv
+- https://raw.githubusercontent.com/jordi-petit/ap2-metro-nyam-2022/main/data/restaurants.csv
+- NO SE COM DESCARREGAR LES JOKES !!!!
 
-Per començar a utilitzar el bot cal escriure la següent línia de comandes a la terminal
+
+
+### Inicialitzar el bot
+Per poder utilitzar el bot, primer necessites crear un Access token, un identificador que Telegram us dóna per identificar el bot. Per fer-ho cal obrir Telegram i visitar el [@BotFather](https://telegram.me/botfather). Executa la comanda `\newbot` i escriu el que et demani sobre el nom complet i nom d'usuari del bot (pots posar el que vulguis mentre acabi amb `bot`). Un cop fet, el [@BotFather](https://telegram.me/botfather) et donarà un access token, el qual has de guardar en un fitxer anomenat `token.txt`. Guarda l'arxiu en el directori principal del projecte. 
+
+Ara el bot ja està creat, i per utilitzar-lo escriu les següents comandes a la terminal
 ``` 
 pip3 install -r requirements.txt 
 python3 bot.py 
 ```
-Un cop fet això, ja es pot començar a utiltzar el bot
-
-### Inicialitzar el bot
-
+Ara ja podràs parlar des de [Telegram](https://telegram.org/) amb el bot i que et guiï al restaurant que prefereixis!
 
 
 ## Example de funcionament del bot
@@ -74,4 +80,4 @@ El projecte MetroNyam (versió Fast&Furious) ha estat creat per Laura Solà Garc
 ## Llicència
 Copyright © 2022 Laura Solà Garcia and Sílvia Fàbregas Salazar.
 
-Aquest projecte està disponible sota els termes de la GNU General Public License (Llicència Pública General). Vegeu LICENSE.md per a més informació.
+Aquest projecte està disponible sota els termes de la GNU General Public License (Llicència Pública General). Vegeu [LICENSE.md](LICENSE.md) per a més informació.
