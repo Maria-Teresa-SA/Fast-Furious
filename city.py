@@ -81,7 +81,7 @@ def add_streets(g1: OsmnxGraph, city_graph: CityGraph) -> None:
                     nom = nom[0]
             else:
                 nom = "lloc indicat"
-            city_graph.add_edge(node, nbr, dtype="Street", time=set_time(
+            city_graph.add_edge(node, nbr, dtype="Street", time=_set_time(
                 "Street", e_attrib["length"]), name=nom, color="black")
 
 
@@ -100,7 +100,7 @@ def add_edges_street_access(g1: OsmnxGraph, g2: MetroGraph, city_graph: CityGrap
     j = 0
     for i in list_a:
         coords = g2.nodes[i]["position"]
-        temps = set_time("Street", haversine(
+        temps = _set_time("Street", haversine(
             city_graph.nodes[i]["position"], city_graph.nodes[nearest[j]]["position"], unit=Unit.METERS))
         city_graph.add_edge(i, nearest[j], dtype="Street", time=temps,
                             name="lloc indicat", color="black")
