@@ -56,9 +56,9 @@ def read_stations() -> Stations:
     cols = ["NOM_ESTACIO", "NOM_LINIA", "GEOMETRY", "COLOR_LINIA"] # columnes que guardem
     data_table_stations = pd.read_csv("estacions_linia.csv", usecols = cols, keep_default_na=False, dtype={cols[0]: str, cols[1]: str, cols[2]: str, cols[3]: str})
     
-    stations = []
+    stations: Stations = []
     for i, row in data_table_stations.iterrows():
-        p = row["GEOMETRY"].strip('POINT( )').split()
+        p: List[str] = row["GEOMETRY"].strip('POINT( )').split() 
         s = Station(row["NOM_ESTACIO"], row["NOM_LINIA"], Coord(float(p[0]), float(p[1])), '#' + row["COLOR_LINIA"])
         stations.append(s)
 
@@ -72,9 +72,9 @@ def read_accesses() -> Accesses:
     cols = ['NOM_ACCES', 'NOM_ESTACIO', 'NOM_LINIA', 'GEOMETRY'] #columnes que guardem
     data_table_accesses = pd.read_csv("accessos_estacio_linia.csv", usecols=cols, keep_default_na=False, dtype={cols[0]: str, cols[1]: str, cols[2]: str, cols[3]: str})
     
-    accesses = []
+    accesses: Accesses = []
     for i, row in data_table_accesses.iterrows():
-        p = row['GEOMETRY'].strip('POINT ( )').split()  # type: List[str]
+        p: List[str] = row['GEOMETRY'].strip('POINT ( )').split()
         a = Access(row['NOM_ACCES'], row['NOM_ESTACIO'], Coord(float(p[0]), float(p[1])), 'black')
         accesses.append(a)
 
@@ -86,7 +86,7 @@ def read_accesses() -> Accesses:
 ##################
 
 # Pre: el tipus és "Street", "Tran", "Access" o "Transfer" i la distància està en metres
-def set_time(dtype: str, dist: float) -> float:
+def _set_time(dtype: str, dist: float) -> float:
     """Funció que retorna el temps que es triga en recórrer una distància (d'un graf) depenent del tipus d'aresta (Street, Tram, Enllaç, Accés).
     
     Velocitat mitja caminant -> 5km/h = 83 m/min
@@ -109,14 +109,16 @@ def get_metro_graph() -> MetroGraph:
 
     G = nx.Graph()
     
-    stations, accesses = read_stations(), read_accesses()
+    stations: Stations = read_stations()
+    accesses: Accesses = read_accesses()
+
     n, m = len(stations), len(accesses)    
-    repeated_stations = {} # type = Dict[str, List[int]]
     # diccionari que ens connectarà amb un Enllaç els nodes estació que comparteixen parada però no línia.
+    repeated_stations: Dict[str, List[int]] = {}
     j = 0
 
     for id in range(n):
-        s = stations[id]
+        s: Station = stations[id]
 
         # afegir estacions de metro (NODES)
         G.add_node(id, dtype = "Station", name = s.name, position = s.coord, color = s.color, line=s.line)
@@ -124,22 +126,22 @@ def get_metro_graph() -> MetroGraph:
         # afegir enllaços de metro (ARESTES)
         if s.name in repeated_stations.keys():
             for s2 in repeated_stations[s.name]:
-                G.add_edge(id, s2, dtype = "Transfer", time = set_time("Transfer", haversine(s.coord, G.nodes[s2]["position"], unit=Unit.METERS)), color = "black")
+                G.add_edge(id, s2, dtype = "Transfer", time = _set_time("Transfer", haversine(s.coord, G.nodes[s2]["position"], unit=Unit.METERS)), color = "black")
             repeated_stations[s.name].append(id)
         else: repeated_stations[s.name] = [id]
 
         # afegir accessos a l'estació (NODES I ARESTES)
         while j < m:
-            a = accesses[j]
+            a: Access = accesses[j]
             if a.name_station == s.name:
                 G.add_node(j + n, dtype = "Access", name = (a.name_access, a.name_station), position = a.coord, color = a.color)
-                G.add_edge(j + n, id, dtype = "Access", time = set_time("Access", haversine(s.coord, a.coord, unit=Unit.METERS)), color = "black")
+                G.add_edge(j + n, id, dtype = "Access", time = _set_time("Access", haversine(s.coord, a.coord, unit=Unit.METERS)), color = "black")
                 j += 1
             else: break    
         
         # afegir trams de metro
         if id < n and s.line == stations[id-1].line:
-            G.add_edge(id, id-1, dtype = "Tram", time = set_time("Tram", haversine(s.coord, stations[id-1].coord, unit=Unit.METERS)), color = s.color)
+            G.add_edge(id, id-1, dtype = "Tram", time = _set_time("Tram", haversine(s.coord, stations[id-1].coord, unit=Unit.METERS)), color = s.color)
 
     return G
 
@@ -149,27 +151,27 @@ def get_metro_graph() -> MetroGraph:
 #################
 
 # pre: nodes de g tenen atribut color
-def get_node_colors(g: MetroGraph):
+def _get_node_colors(g: MetroGraph):
     """Traspassa la informació guardada en un diccionari de colors a una llista de colors per pintar els nodes al mapa.
     Aquest diccionari s'obté de l'atribut color guardat al graf g."""
 
-    dict_colors = nx.get_node_attributes(g, 'color')
+    dict_colors: Dict[int, str] = nx.get_node_attributes(g, 'color')
     return [dict_colors[x] for x in dict_colors]
 
 
 # pre: arestes de g tenen atribut color
-def get_edge_colors(g: MetroGraph):
+def _get_edge_colors(g: MetroGraph):
     """Traspassa la informació guardada en un diccionari de colors a una llista de colors per pintar les arestes al mapa.
     Aquest diccionari s'obté de l'atribut color guardat al graf g."""
     
-    dict_colors = nx.get_edge_attributes(g, 'color')
+    dict_colors: Dict[int, str] = nx.get_edge_attributes(g, 'color')
     return [dict_colors[x] for x in dict_colors]
 
 
 def show(g: MetroGraph) -> None:
     """Mostra el graf amb les estacions de metro i els accesos a aquestes com a nodes i les seves arestes corresponents."""
 
-    nx.draw(g, pos=nx.get_node_attributes(g, 'position'), node_size=10, node_color=get_node_colors(g), width = 2, edge_color = get_edge_colors(g))
+    nx.draw(g, pos=nx.get_node_attributes(g, 'position'), node_size=10, node_color=_get_node_colors(g), width = 2, edge_color = _get_edge_colors(g))
     plt.show()
 
 
@@ -179,16 +181,22 @@ def plot(g: MetroGraph, filename: str) -> None:
     """Guarda al fitxer "filename" un plot del graf de metros amb la ciutat de Barcelona de fons. S'usa staticmap."""
 
     m = StaticMap(1200, 800, 10)
+
+    # NODES
     for u in g.nodes:
-        coordinate_u = g.nodes[u]['position']
-        color = g.nodes[u]['color']
-        marker = CircleMarker(coordinate_u, color, 10)
+        coordinate_u: Coord = g.nodes[u]['position']
+        color: str = g.nodes[u]['color']
+        size: int = 10 if g.nodes[u]['dtype'] == "Station" else 7
+        marker = CircleMarker(coordinate_u, color, size)
         m.add_marker(marker)
+    
+    # ARESTES
     for v in g.edges:
-        coordinate_v, coordinate_u = g.nodes[v[0]]['position'], g.nodes[v[1]]["position"]
-        line = Line({coordinate_u, coordinate_v}, color, 5)
+        coordinate_v: Coord = g.nodes[v[0]]['position']
+        coordinate_u: Coord = g.nodes[v[1]]["position"]
+        color: str = g.edges[v]['color']
+        line = Line({coordinate_u, coordinate_v}, color, 3)
         m.add_line(line)
 
     image = m.render()
     image.save(filename)
-
