@@ -81,7 +81,7 @@ def add_streets(g1: OsmnxGraph, city_graph: CityGraph) -> None:
                     nom = nom[0]
             else:
                 nom = "lloc indicat"
-            city_graph.add_edge(node, nbr, dtype="Street", time=_set_time(
+            city_graph.add_edge(node, nbr, dtype="Street", time=set_time(
                 "Street", e_attrib["length"]), name=nom, color="black")
 
 
@@ -100,7 +100,7 @@ def add_edges_street_access(g1: OsmnxGraph, g2: MetroGraph, city_graph: CityGrap
     j = 0
     for i in list_a:
         coords = g2.nodes[i]["position"]
-        temps = _set_time("Street", haversine(
+        temps = set_time("Street", haversine(
             city_graph.nodes[i]["position"], city_graph.nodes[nearest[j]]["position"], unit=Unit.METERS))
         city_graph.add_edge(i, nearest[j], dtype="Street", time=temps,
                             name="lloc indicat", color="black")
@@ -212,8 +212,8 @@ def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path:
     Utilitza l'OsmnxGraph per trobar l'ID del node més proper a aquestes coordenades i empra el
     city graph per calcular el camí més curt que les connecta."""
 
-    nearest_src = ox.distance.nearest_nodes(ox_g, src.x, src.y)
-    nearest_dst = ox.distance.nearest_nodes(ox_g, dst.x, dst.y)
+    nearest_src = ox.distance.nearest_nodes(ox_g, src.x, src.long)
+    nearest_dst = ox.distance.nearest_nodes(ox_g, dst.x, dst.lat)
     return nx.shortest_path(g, nearest_src, nearest_dst, weight="time")
 
 
