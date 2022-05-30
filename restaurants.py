@@ -65,7 +65,9 @@ def read_restaurants() -> Restaurants:
 #################
 #     Cerca     #
 #################
+
 def search_cat(queries: List[str]) -> bool:
+  
   """Retorna si s'ha de buscar en categories."""
   
   for query in queries:
@@ -74,13 +76,15 @@ def search_cat(queries: List[str]) -> bool:
           return True
   return False
 
+
 def w_restaurant(restaurant: Restaurant, queries: List[str], search_categories: bool) -> int:
+  
     """Retorna el pes de prioritat del restaurant respecte les entrades si s'ha d'afegir a la llista de restaurants
     i si no retorna 0."""
   
     w = 0 # pes inicial        
     for query in queries:
-      match = False      # si coincidència és True : restaurant coincideix amb la cerca. Pes és la seva prioritat.        
+      match = False      # si match és True : restaurant coincideix amb la cerca. Pes és la seva prioritat.        
       for el in [restaurant.address.district, restaurant.address.neighbourhood, restaurant.address.address_name, restaurant.name]:
         fuzzy = find_near_matches(query, el, max_l_dist = 1)
         if len(fuzzy):
@@ -96,6 +100,7 @@ def w_restaurant(restaurant: Restaurant, queries: List[str], search_categories: 
       # si una query no encaixa amb cap element del restaurant, no l'afegirem
       if not match: return 0
      return w
+  
   
 def myFunc(rest: Tuple[Restaurant, int]):
 
@@ -120,13 +125,11 @@ def find_restaurants(queries: List[str], restaurants: Restaurants) -> Restaurant
 
   # només busquem dins les categories si hi ha un encert total (no fuzzysearch) per evitar problemes amb la fuzzysearch
   # i parelles de paraules com Sants i Restaurants.
-  search_categories = search_cat(queries)
+  search_categories = search_cat(queries) 
       
-
   for restaurant in restaurants:
-    w = w_restaurant(restaurant, queries, search_categories)
-    if w:
-      weigths.append({restaurant, w})
+    w = w_restaurant(restaurant, queries, search_categories) # val 0 si restaurant no encaixa amb queries i si no el pes de prioritat
+    if w: weigths.append([restaurant, w])
 
   weigths.sort(reverse=True, key=myFunc)
 
