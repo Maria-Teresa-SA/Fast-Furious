@@ -1,5 +1,3 @@
-# llibreries importades
-
 import pandas                                          # llegir fitxer csv
 from dataclasses import dataclass                      # classes
 from typing_extensions import TypeAlias                # typealiases
@@ -19,7 +17,7 @@ Coord : TypeAlias = namedtuple('Coord', ['x', 'y']) # type = Tuple[float, float]
 @dataclass
 class Address:
   address_name: TypeAlias = str # nom del carrer
-  address_num: TypeAlias = Optional[int] # número del carrer, falta tractar amb els valors Nan
+  address_num: TypeAlias = Optional[int] # número del carrer
   neighbourhood: TypeAlias = str # barri
   district: TypeAlias = str # districte
   zip_code: TypeAlias = int # codi postal
@@ -27,7 +25,7 @@ class Address:
 @dataclass
 class Restaurant: 
   name: TypeAlias = str # nom del restaurant
-  address: TypeAlias = Address # adressa del restaurant
+  address: TypeAlias = Address # adreça del restaurant
   category : TypeAlias = str # tipus de restaurant
   position: TypeAlias = Coord # coordenades del restaurant
 
@@ -66,7 +64,7 @@ def read_restaurants() -> Restaurants:
 #     Cerca     #
 #################
 
-def search_cat(queries: List[str]) -> bool:
+def _search_cat(queries: List[str]) -> bool:
   
   """Retorna si s'ha de buscar en categories."""
   
@@ -77,10 +75,10 @@ def search_cat(queries: List[str]) -> bool:
   return False
 
 
-def w_restaurant(restaurant: Restaurant, queries: List[str], search_categories: bool) -> int:
+def _w_restaurant(restaurant: Restaurant, queries: List[str], search_categories: bool) -> int:
   
-    """Retorna el pes de prioritat del restaurant respecte les entrades si s'ha d'afegir a la llista de restaurants
-    i si no retorna 0."""
+    """Retorna el pes de prioritat del restaurant respecte les entrades (queries) si s'ha d'afegir a la 
+    llista de restaurants i si no retorna 0. En cas que s'hagi de mirar entre les categories, es fa."""
   
     w = 0 # pes inicial        
     for query in queries:
@@ -99,7 +97,7 @@ def w_restaurant(restaurant: Restaurant, queries: List[str], search_categories: 
 
       # si una query no encaixa amb cap element del restaurant, no l'afegirem
       if not match: return 0
-     return w
+    return w
   
   
 def myFunc(rest: Tuple[Restaurant, int]):
@@ -125,15 +123,13 @@ def find_restaurants(queries: List[str], restaurants: Restaurants) -> Restaurant
 
   # només busquem dins les categories si hi ha un encert total (no fuzzysearch) per evitar problemes amb la fuzzysearch
   # i parelles de paraules com Sants i Restaurants.
-  search_categories = search_cat(queries) 
+  search_categories = _search_cat(queries) 
       
   for restaurant in restaurants:
-    w = w_restaurant(restaurant, queries, search_categories) # val 0 si restaurant no encaixa amb queries i si no el pes de prioritat
+    w = _w_restaurant(restaurant, queries, search_categories) # val 0 si restaurant no encaixa amb queries i si no el pes de prioritat
     if w: weigths.append([restaurant, w])
 
   weigths.sort(reverse=True, key=myFunc)
 
   return [el[0] for el in weigths] 
-
-
 
