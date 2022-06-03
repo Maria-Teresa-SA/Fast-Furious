@@ -11,8 +11,7 @@ categories = ['Restaurants', 'Tablaos flamencs', 'Cocteleries','Xampanyeries', '
 #   Tipus de dades   #
 ######################
 
-# (longitud, latitud)
-Coord : TypeAlias = namedtuple('Coord', ['x', 'y']) # type = Tuple[float, float]
+Coord : TypeAlias = namedtuple('Coord', ['long', 'lat']) # type = Tuple[float, float]
 
 @dataclass
 class Address:
@@ -51,7 +50,7 @@ def read_restaurants() -> Restaurants:
     # lectura de dades
     data_table = pandas.read_csv("restaurants.csv", usecols=cols, keep_default_na=False, dtype={cols[0]: str, cols[1]: str, cols[2]: str, cols[3]: str, cols[4]: str, cols[5]: str, cols[6]: str, cols[7]: float, cols[8]: float})
                                                                                                    
-    ls = []  # type: Restaurants
+    ls : Restaurants = []
     for i, row in data_table.iterrows():
         restaurant = Restaurant(row['name'], Address(row['addresses_road_name'], row['addresses_start_street_number'],
                                 row['addresses_neighborhood_name'], row['addresses_district_name'], row['addresses_zip_code']),  row['secondary_filters_name'], Coord(row['geo_epgs_4326_y'], row['geo_epgs_4326_x']))
@@ -80,22 +79,22 @@ def _w_restaurant(restaurant: Restaurant, queries: List[str], search_categories:
     """Retorna el pes de prioritat del restaurant respecte les entrades (queries) si s'ha d'afegir a la 
     llista de restaurants i si no retorna 0. En cas que s'hagi de mirar entre les categories, es fa."""
   
-    w = 0 # pes inicial        
-    for query in queries:
-      match = False      # si match és True : restaurant coincideix amb la cerca. Pes és la seva prioritat.        
+    w : int = 0 # pes inicial        
+    for query in queries: # ha d'haver-hi match per totes les queries
+      match : bool = False      # si al final match és True : restaurant coincideix amb la cerca.        
       for el in [restaurant.address.district, restaurant.address.neighbourhood, restaurant.address.address_name, restaurant.name]:
         fuzzy = find_near_matches(query, el, max_l_dist = 1)
         if len(fuzzy):
           match = True
-          w += 2 - fuzzy[0].dist
+          w += 2 - fuzzy[0].dist # si distància és 0 w += 2; si distància és 1 w += 1
           break
 
-      # en cas que hem definit que volem buscar dins les categories, si encara no ha coincidit
+      # en cas que haguem definit que volem buscar dins les categories, si encara no ha coincidit
       if not match and search_categories and query in restaurant.category:
         match = True
         w += 2
 
-      # si una query no encaixa amb cap element del restaurant, no l'afegirem
+      # si una query no encaixa amb cap element del restaurant, no l'afegirem i tindrà pes 0
       if not match: return 0
     return w
   
@@ -126,10 +125,14 @@ def find_restaurants(queries: List[str], restaurants: Restaurants) -> Restaurant
   search_categories = _search_cat(queries) 
       
   for restaurant in restaurants:
-    w = _w_restaurant(restaurant, queries, search_categories) # val 0 si restaurant no encaixa amb queries i si no el pes de prioritat
+    w = _w_restaurant(restaurant, queries, search_categories) # val 0 si restaurant no encaixa amb queries. Si no, el pes de prioritat
     if w: weigths.append([restaurant, w])
 
   weigths.sort(reverse=True, key=myFunc)
+  
+  # també es podria fer amb una PriorityQueue, però hauríem de definir un mètode d'ordenació.
+  # Podríem donar com a entrada unes coordenades i donar més prioritat als restaurants més propers a aquesta.
+  # D'aquesta forma els restaurants més propers a l'usuari tindrien major prioritat.
 
   return [el[0] for el in weigths] 
 
