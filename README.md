@@ -48,7 +48,7 @@ També cal tenir descarregats els fitxers de dades que utilitzen els diferents m
 - https://raw.githubusercontent.com/jordi-petit/ap2-metro-nyam-2022/main/data/blob/main/estacions.csv
 - https://raw.githubusercontent.com/jordi-petit/ap2-metro-nyam-2022/main/data/blob/main/accessos.csv
 - https://raw.githubusercontent.com/jordi-petit/ap2-metro-nyam-2022/main/data/restaurants.csv
-- NO SE COM DESCARREGAR LES JOKES !!!!
+- https://github.com/amoudgl/short-jokes-dataset/blob/master/data/reddit-cleanjokes.csv
 
 
 
