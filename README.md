@@ -76,4 +76,4 @@ El projecte MetroNyam (versió Fast&Furious) ha estat creat per Laura Solà Garc
 ## Llicència
 Copyright © 2022 Laura Solà Garcia and Sílvia Fàbregas Salazar.
 
-Aquest projecte està disponible sota els termes de la GNU General Public License (Llicència Pública General). Vegeu [LICENSE.md](LICENSE.md) per a més informació.
+Aquest projecte està disponible sota els termes de la GNU General Public License (Llicència Pública General). 
