@@ -42,7 +42,10 @@ Un petit resum d'aquestes primeres són:
 ## Començant
 
 ### Prerequisits
-Per tal d'utilitzar el bot creat, cal tenir descarregat [Python](https://www.python.org/) a l'ordinador, i [Telegram](https://telegram.org/) o bé a l'ordinador o bé al mòbil. A més, cal tenir descarregades les llibreries especificades al arxiu `requeriments.txt`.
+Per tal d'utilitzar el bot creat, cal tenir descarregat [Python](https://www.python.org/) a l'ordinador, i [Telegram](https://telegram.org/) o bé a l'ordinador o bé al mòbil. A més, cal tenir descarregades les llibreries especificades al arxiu `requeriments.txt`. Això es pot fer amb la següent línia de comandes:
+```python3
+python -m pip install -r requirements.txt
+```
 
 També cal tenir descarregats els fitxers de dades que utilitzen els diferents mòduls. Aquests són:
 - https://raw.githubusercontent.com/jordi-petit/ap2-metro-nyam-2022/main/data/blob/main/estacions.csv
@@ -55,9 +58,8 @@ També cal tenir descarregats els fitxers de dades que utilitzen els diferents m
 ### Inicialitzar el bot
 Per poder utilitzar el bot, primer necessites crear un Access token, un identificador que Telegram us dóna per identificar el bot. Per fer-ho cal obrir Telegram i visitar el [@BotFather](https://telegram.me/botfather). Executa la comanda `\newbot` i escriu el que et demani sobre el nom complet i nom d'usuari del bot (pots posar el que vulguis mentre acabi amb `bot`). Un cop fet, el [@BotFather](https://telegram.me/botfather) et donarà un access token, el qual has de guardar en un fitxer anomenat `token.txt`. Guarda l'arxiu en el directori principal del projecte. 
 
-Ara el bot ja està creat, i per utilitzar-lo escriu les següents comandes a la terminal
+Ara el bot ja està creat, i per executar-lo escriu la següent comanda a la terminal
 ``` 
-python -m pip install -r requirements.txt
 python3 bot.py 
 ```
 Ara ja podràs parlar des de [Telegram](https://telegram.org/) amb el bot i que et guiï al restaurant que prefereixis!
