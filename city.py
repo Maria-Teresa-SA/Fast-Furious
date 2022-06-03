@@ -1,8 +1,7 @@
-from metro import *
-import osmnx as ox
-import os
-# per guardar graf osmnx en un fitxer i no haver de baixar-lo cada cop. Serveix també per obrir el fitxer amb el graf quan ja ha set descarregat.
-import pickle
+from metro import *         # mòdul metro
+import osmnx as ox          # graf osmnx
+import os                   # path exists
+import pickle               # guardar objectes
 
 
 ######################
@@ -15,7 +14,7 @@ OsmnxGraph: TypeAlias = nx.MultiDiGraph
 
 NodeID: TypeAlias = int
 
-Path: TypeAlias = List[NodeID]                   # tots els nodes tenen identificadors enters
+Path: TypeAlias = List[NodeID]
 
 #############################
 #  Funcions implementades   #
@@ -27,11 +26,14 @@ Path: TypeAlias = List[NodeID]                   # tots els nodes tenen identifi
 
 
 def get_osmnx_graph() -> OsmnxGraph:
-    """Obté i retorna el graf dels carrers de Barcelona de la web mitjançant osmnx."""
+
+    """Obté i retorna el graf dels carrers de Barcelona de la web
+    mitjançant osmnx."""
 
     graph = ox.graph_from_place('Barcelona', network_type='walk', simplify=True)
 
-    # eliminem la informació de geometria dels atributs perquè ocupa molt espai i no la necessitem
+    # eliminem la informació de geometria dels atributs perquè ocupa
+    # molt espai i no la necessitem
     for u, v, key, geom in graph.edges(data="geometry", keys=True):
         if geom is not None:
             del(graph[u][v][key]["geometry"])
@@ -40,7 +42,9 @@ def get_osmnx_graph() -> OsmnxGraph:
 
 
 def save_osmnx_graph(g: OsmnxGraph, filename: str) -> None:
-    """Guarda el graf de carrers al fitxer de nom "filename" per poder-hi accedir futurament sense carregar-lo constantment de la web."""
+
+    """Guarda el graf de carrers al fitxer de nom "filename" per poder-hi
+    accedir futurament sense carregar-lo constantment de la web."""
 
     pickle_out = open(filename, 'wb')
     pickle.dump(g, pickle_out)
@@ -48,8 +52,10 @@ def save_osmnx_graph(g: OsmnxGraph, filename: str) -> None:
 
 
 def load_osmnx_graph(filename: str) -> OsmnxGraph:
-    """Retorna el graf de carrers. En cas que sigui el primer cop que intentem accedir a aquest graf,
-    se'l descarrega de la web. Si no, accedeix al fitxer de nom filename on està guardat."""
+
+    """Retorna el graf de carrers. En cas que sigui el primer cop que
+    intentem accedir a aquest graf, se'l descarrega de la web. Si no,
+    accedeix al fitxer de nom filename on està guardat."""
 
     if not os.path.exists(filename):
         bcn_streets = get_osmnx_graph()
@@ -67,14 +73,20 @@ def load_osmnx_graph(filename: str) -> OsmnxGraph:
 #################
 
 def add_streets(g1: OsmnxGraph, city_graph: CityGraph) -> None:
+
+    """Afegeix els nodes de tipus Street de l'OsmnxGraph al CityGraph."""
+
     # recorrem el graf g1
     for node, nbrs_dict in g1.adjacency():
         city_graph.add_node(node, dtype="Street", position=Coord(
             g1.nodes[node]['x'], g1.nodes[node]['y']), color="black")
-        # per cada node adjacent i la informació associada a l'aresta entre ells
+        # per cada node adjacent i informació associada a l'aresta entre ells
         for nbr, edgesdict in nbrs_dict.items():
-            e_attrib = edgesdict[0]    # e_attrib conté l'atribut de la primera aresta (multigrafs)
-            # afegim una aresta entre node i nbr i hi associem tota la informació d'aquesta i el seu tipus.
+            e_attrib = edgesdict[0]
+            # e_attrib conté l'atribut de la primera aresta (multigrafs)
+
+            # afegim una aresta entre node i nbr i hi associem tota la
+            # informació d'aquesta i el seu tipus.
             if "name" in e_attrib:
                 nom = e_attrib["name"]
                 if not isinstance(e_attrib["name"], str):
@@ -86,7 +98,10 @@ def add_streets(g1: OsmnxGraph, city_graph: CityGraph) -> None:
 
 
 def add_edges_street_access(g1: OsmnxGraph, g2: MetroGraph, city_graph: CityGraph) -> None:
-    # afegir arestes que connecten els accessos amb la ciutat
+
+    """Afegeix les arestes entre Acceços del MetroGraph i de Street del
+    OsmnxGraph al CityGraph."""
+
     dtype = nx.get_node_attributes(g2, 'dtype')  # diccionari amb els tipus
     list_x, list_y, list_a = [], [], []
     for i in g2.nodes:
@@ -108,10 +123,13 @@ def add_edges_street_access(g1: OsmnxGraph, g2: MetroGraph, city_graph: CityGrap
 
 
 def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
-    """Retorna un graf fusió del graf de Barcelona (carrers) i el graf de metros. Primer recorrem el primer
-    graf (g1, de carrers) afegint al nostre graf de ciutat tots els nodes, arestes i informació rellevant.
-    Després fem la unió amb el graf de metro (g2). Finalment, afegim les arestes que connecten els accessos
-    amb el graf de ciutat i en retornem el resultat."""
+
+    """Retorna un graf fusió del graf de Barcelona (carrers) i el graf de
+    metros. Primer recorrem el primer graf (g1, de carrers) afegint al nostre
+    graf de ciutat tots els nodes, arestes i informació rellevant.
+    Després fem la unió amb el graf de metro (g2). Finalment, afegim les
+    arestes que connecten els accessos amb el graf de ciutat i en retornem
+    el resultat."""
 
     city_graph = CityGraph()
 
@@ -122,92 +140,101 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
 
     add_edges_street_access(g1, g2, city_graph)
 
-    city_graph.remove_edges_from(nx.selfloop_edges(city_graph))  # esborrem les selfloops del graf
+    city_graph.remove_edges_from(nx.selfloop_edges(city_graph))
+    # esborrem les selfloops del graf
 
     return city_graph
+
 
 ############
 #   Path   #
 ############
 
+def get_metro_path_description(g: CityGraph, p: Path, i: int) -> Tuple[int, str]:
 
-def get_metro_path_description(g: CityGraph, p: Path, i: int):
+    """Retorna el valor actualitzat de la variable i i la descripció del
+    trajecte realitzat en metro."""
+
     first_station = g.nodes[p[i]]["name"]
     metro_line = g.nodes[p[i]]["line"]
     current_edge_type = g[p[i]][p[i+1]]["dtype"]
-    while (current_edge_type == "Tram"):
+    while current_edge_type == "Tram":
         i += 1
         current_edge_type = g[p[i]][p[i+1]]["dtype"]
+
     last_station = g.nodes[p[i]]["name"]
-    i += 1
-    descr_trajecte = "Ves des de l'estació " + first_station + \
-        " fins a " + last_station + " amb la linia " + metro_line + ". "
-    return descr_trajecte
+    description = "\n🚇 Ves des de l'estació " + first_station + \
+        " fins a " + last_station + " amb la línia " + metro_line + ". "
+    return [i, description]
 
 
-def get_path_description(g: CityGraph, p: Path):
-    description = " "
+def get_path_description(g: CityGraph, p: Path) -> str:
 
-    current_edge_type = "Street"
-    i = 0
+    """Retorna la descripció del path p. S'indiquen quins trams es fan
+    caminant, quins en metro (i línia associada) i els accessos pels
+    quals s'ha d'accedir a aquests."""
+
+    description = ""               # descripció del path
+    i = 0                           # posició en el path
+
     while i < (len(p)-1):
+        # tipus de l'aresta en la qual ens trobem
+        current_edge_type = g[p[i]][p[i+1]]["dtype"]
 
-        if (current_edge_type == "Street"):
+        # cas 1 : tram carrer
+        if current_edge_type == "Street":
             starting_street = g[p[i]][p[i+1]]["name"]
-            if (not isinstance(starting_street, str)):
-                starting_street = starting_street[0]
-            while i < (len(p)-2) and current_edge_type == "Street":
+
+            while i < len(p)-2 and current_edge_type == "Street":
                 i += 1
                 current_edge_type = g[p[i]][p[i+1]]["dtype"]
+
             ending_street = g[p[i-2]][p[i-1]]["name"]
-            if (not isinstance(ending_street, str)):
+            # tractament de paraules començades per vocal
+            el = "' " if starting_street[0] in "AEIOUaeiou" else "e "
+            if starting_street != ending_street:
+                description += "🚶 Camina des d" + el + starting_street
+                description += " fins a " + ending_street + ". "
+            else:
+                description += "🚶 Camina per " + starting_street + ". "
 
-                ending_street = ending_street[0]
-
-            descr_trajecte = "Camina des del carrer " + starting_street + " fins al carrer " + ending_street + ". "
-            description += descr_trajecte
-            # print(description)
+        # cas 2 : tram accés (per fer un tram en metro sempre s'ha d'entrar i sortir per un accés
         if current_edge_type == "Access":
             metro_entry = g.nodes[p[i]]["name"][0]
-            descr_trajecte = "Entra al metro per l'accés " + metro_entry + "."
+            description += "Entra al metro per l'accés " + metro_entry + ". "
             i += 1
             current_edge_type = g[p[i]][p[i+1]]["dtype"]
-            while current_edge_type != "Access":
 
-                descr_trajecte += get_metro_path_description(g, p, i)
-                # print(descr_trajecte)
-                while (g[p[i]][p[i+1]]["dtype"] == "Tram"):
-                    i += 1
+            while current_edge_type != "Access":
+                metro_path = get_metro_path_description(g, p, i)
+                i = metro_path[0]
+                description += metro_path[1]
 
                 if g[p[i]][p[i+1]]["dtype"] == "Enllaç":
-                    descr_trajecte += "Fes un transbordament. "
+                    description += "Fes un transbordament. "
                     i += 1
-                #    print(descr_trajecte)
+
                 current_edge_type = g[p[i]][p[i+1]]["dtype"]
             i += 1
             metro_exit = g.nodes[p[i]]["name"][0]
-            descr_trajecte += ("Surt del metro per l'accés " + metro_exit + "\n")
-            description += descr_trajecte
-        #    print(description)
-            current_edge_type = g[p[i]][p[i+1]]["dtype"]
+            description = description + "Surt del metro per l'accés " + metro_exit + ".\n"
 
         i += 1
 
     return description
 
 
-def get_time_path(g: CityGraph, p: Path):
-    """Retorna el temps que es triga en recórrer un cert path."""
+def get_time_path(g: CityGraph, p: Path) -> int:
 
+    """Retorna el temps que es triga en recórrer un cert path."""
     time = 0
     for i in range(len(p)-1):
         time += g[p[i]][p[i+1]]["time"]
-    return time
-
-# Recordem que l'estructura de Coord és (longitud, latitud)
+    return int(round(time, 0))
 
 
 def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path:
+
     """Retorna el camí més curt des de les coordenades de sortida fins les coordenades de destí.
     Utilitza l'OsmnxGraph per trobar l'ID del node més proper a aquestes coordenades i empra el
     city graph per calcular el camí més curt que les connecta."""
@@ -221,18 +248,19 @@ def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path:
 #   Imatges     #
 #################
 
-# SHOW TOT EL GRAPH
 def show(g: CityGraph) -> None:
-    """Mostra una imatge del citygraph."""
+
+    """Mostra una imatge del CityGraph."""
 
     nx.draw(g, pos=nx.get_node_attributes(g, 'position'), node_size=5, width=1,
             node_color=get_node_colors(g), edge_color=get_edge_colors(g))
     plt.show()
 
 
-# PLOT DE TOT EL GRAPH
 def plot(g: CityGraph, filename: str) -> None:
-    """Guarda al fitxer "filename" un plot del graf de ciutat amb la ciutat de Barcelona de fons. S'usa staticmap."""
+
+    """Guarda al fitxer "filename" un plot del graf de ciutat amb la
+    ciutat de Barcelona de fons. S'usa staticmap."""
 
     m = StaticMap(1200, 800, 0)
     for u in g.nodes:
@@ -250,9 +278,10 @@ def plot(g: CityGraph, filename: str) -> None:
     image.save(filename)
 
 
-# p path és una llista de nodes que tenen
 def plot_path(g: CityGraph, p: Path, filename: str) -> None:
-    """Guarda al fitxer "filename" un plot del path p amb la ciutat de Barcelona de fons. S'usa staticmap"""
+
+    """Guarda al fitxer "filename" un plot del path p amb la ciutat
+    de Barcelona de fons. S'usa staticmap"""
 
     m = StaticMap(1200, 800, 0)
     marker = CircleMarker(g.nodes[p[0]]["position"], g.nodes[p[0]]["color"], 10)
