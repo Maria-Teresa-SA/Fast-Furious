@@ -12,7 +12,7 @@ categories = ['Restaurants', 'Tablaos flamencs', 'Cocteleries','Xampanyeries', '
 ######################
 
 # (longitud, latitud)
-Coord : TypeAlias = namedtuple('Coord', ['x', 'y']) # type = Tuple[float, float]
+Coord : TypeAlias = namedtuple('Coord', ['long', 'lat']) # type = Tuple[float, float]
 
 @dataclass
 class Address:
