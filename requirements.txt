@@ -1,0 +1,11 @@
+pandas ~= 1.4.2
+dataclasses ~= 0.6
+typing_extensions ~= 4.1.1
+typing ~= 3.7.4.3
+networkx ~= 2.8.2
+matplotlib.pyplot ~= 3.5.2
+staticmap ~= 0.5.5
+haversine ~= 2.5.1
+osmnx ~= 1.1.2
+pyhton-telegram-bot ~= 13.11
+telegram ~= 0.0.1
