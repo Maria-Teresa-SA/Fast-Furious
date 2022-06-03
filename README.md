@@ -1,4 +1,4 @@
-# MetroNyam🍕🍔
+# MetroNyam 🍕🍔
 El projecte MetroNyam consisteix en un bot de Telegram que té l'objectiu d'ajudar a la gent de Barcelona a decidir a quin restaurant volen anar a menjar d'entre tots els restaurants de la ciutat i els dona la ruta més ràpida per arribar-hi des de la seva ubicació, caminant i en metro. 
 
 ## Estructura
@@ -21,7 +21,7 @@ El graf de metro és un graf no dirigit de `networkx`. Es poden diferenciar dos 
 D'altra banda, aquest mòdul també permet visualitzar gràficament el graf de metro creat de dues maneres: el pots veure com un graf dinàmic que s'obre en una finestra de la terminal, o alternativament guardar una imatge en el fitxer desitjat on es pot veure el graf de metro representat sobre un mapa de la ciutat de barcelona.
 
 
-### Mòdul city.py🏙
+### Mòdul city.py 🏙
 En aquest mòdul es crea el graf de la ciutat de Barcelona, resultat de la unió del graf de les línies de metro, construit a `metro.py`, i del graf de carrers de barcelona, obtingut amb el mòdul `osmnx `. 
 Llavors, a partir del graf de la ciutat de Barcelona, hi ha implementada una funció que troba el camí més ràpid, caminant i en metro, entre dos punts de la ciutat. A més, també es pot obtenir l'expilcació de la ruta que cal seguir i el temps que es trigaria en fer-la.
 Per últim, de la mateixa manera que el graf de metro, el graf de Barcelona també es pot visualitzar tant en forma de graf dinàmic, com en forma  d'imatge amb el mapa de Barcelona com a fons.
