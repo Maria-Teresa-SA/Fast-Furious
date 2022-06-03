@@ -73,9 +73,4 @@ POSAR FOTOS !!!
 
 
 ## Autores
-El projecte MetroNyam (versió Fast&Furious) ha estat creat per Laura Solà Garcia i Sílvia Fàbregas Salazar, estudiants de Ciència i Enginyeria de Dades a la UPC com a part de l'assignatura Algorísmia i Programació 2. L'especificació del treball es pot trobar a https://github.com/jordi-petit/ap2-metro-nyam-2022
-
-## Llicència
-Copyright © 2022 Laura Solà Garcia and Sílvia Fàbregas Salazar.
-
-Aquest projecte està disponible sota els termes de la GNU General Public License (Llicència Pública General). 
+El projecte MetroNyam (versió Fast&Furious) ha estat creat per Laura Solà Garcia i Sílvia Fàbregas Salazar, estudiants de Ciència i Enginyeria de Dades a la UPC com a part de l'assignatura Algorísmia i Programació 2. L'especificació del treball es pot trobar a https://github.com/jordi-petit/ap2-metro-nyam-2022 
