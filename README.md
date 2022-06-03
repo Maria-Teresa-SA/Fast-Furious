@@ -57,7 +57,7 @@ Per poder utilitzar el bot, primer necessites crear un Access token, un identifi
 
 Ara el bot ja està creat, i per utilitzar-lo escriu les següents comandes a la terminal
 ``` 
-pip3 install -r requirements.txt 
+python -m pip install -r requirements.txt
 python3 bot.py 
 ```
 Ara ja podràs parlar des de [Telegram](https://telegram.org/) amb el bot i que et guiï al restaurant que prefereixis!
