@@ -69,6 +69,8 @@ Ara ja podràs parlar des de [Telegram](https://telegram.org/) amb el bot i que 
 
 En les següents fotografies es pot veure un exemple de com funciona el bot si busques un restaurant ¿de sushi a sants?, en aquest cas ¿_______? i a algú des de la seva ubicació fins al restaurant
 
+![video-bot-funcionament.mp4](video-bot-funcionament.mp4)
+
 POSAR FOTOS !!!
 
 
