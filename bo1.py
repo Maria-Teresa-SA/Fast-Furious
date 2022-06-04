@@ -1,5 +1,5 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ChatAction
 from city import *
 from metro import *
 from restaurants import *
@@ -253,14 +253,13 @@ def guide(update, context):
                 context.bot.send_message(chat_id=update.effective_chat.id, text=text_espera)
                 # trobar el camí més curt
                 path: Path = _path(context, entry)
-                # context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.TYPING)
                 # broma
                 context.bot.send_message(chat_id=update.effective_chat.id, text=jokes.values[randint(0, 99999) % 1623][1])
                 # guardar camí a fitxer de nom aleatori (no solapament)
                 filename: str = "%d.png" % randint(0, 9999999)
                 plot_path(city_graph, path, filename)
                 # mostrar els resultats obtinguts a l'usuari
-                # context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.UPLOAD_PHOTO)
+                context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.UPLOAD_PHOTO)
                 context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(filename, "rb"))  # imatge de recorregut
                 context.bot.send_message(chat_id=update.effective_chat.id, text=get_path_description(city_graph, path))  # descripció recorregut
                 text_temps = "Temps aproximat de trajecte: " + str(get_time_path(city_graph, path)) + " min.\nBona sort nano! RUm RUm."
