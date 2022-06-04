@@ -210,7 +210,7 @@ def get_path_description(g: CityGraph, p: Path) -> str:
                 i = metro_path[0]
                 description += metro_path[1]
 
-                if g[p[i]][p[i+1]]["dtype"] == "Enllaç":
+                if g[p[i]][p[i+1]]["dtype"] == "Transfer":
                     description += "Fes un transbordament. "
                     i += 1
 
