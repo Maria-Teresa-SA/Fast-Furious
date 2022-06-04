@@ -67,11 +67,12 @@ Ara ja podràs parlar des de [Telegram](https://telegram.org/) amb el bot i que 
 
 ## Example de funcionament del bot
 
-En les següents fotografies es pot veure un exemple de com funciona el bot si busques un restaurant ¿de sushi a sants?, en aquest cas ¿_______? i a algú des de la seva ubicació fins al restaurant
+En les següents fotografies es pot veure un exemple de com funciona el bot. 
 
 ![](video_bot_funcionament.gif)
 
-POSAR FOTOS !!!
+En aquest cas hem buscat restaurants que continguin la paraula 'sopa' en algun dels camps de la seva descripció (nom, adreça, categoria...). Si es volgués, es podria posar més d'una paraula per cercar. Veiem que ens apareix una llista amb una sèrie d'opcions de restaurants als quals anar, i es poden demanar alguns més per si no estàs satisfet amb els que han aparegut. Com es pot veure, es pot demanar informació dels diferents restaurants de la llista, i un cop t'has decidit, amb la comanda /guide obtens la ruta per arribar-hi. 
+
 
 
 ## Autores
