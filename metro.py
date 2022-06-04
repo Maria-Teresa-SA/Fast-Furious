@@ -1,7 +1,7 @@
 import pandas as pd                                         # llegir fitxers csv
 from dataclasses import dataclass                           # dataclasses
 from typing_extensions import TypeAlias                     # typing
-from typing import Optional, TextIO, List                   # typing
+from typing import Optional, TextIO, List, Tuple            # typing
 from collections import namedtuple                          # generar tuples (Coord)
 import networkx as nx                                       # generar graf
 import matplotlib.pyplot as plt                             # plotejar mapa
@@ -92,7 +92,7 @@ def read_accesses() -> Accesses:
 
 # Pre: el tipus és "Street", "Tran", "Access" o "Transfer" i
 # la distància està en metres
-def _set_time(dtype: str, dist: float) -> float:
+def set_time(dtype: str, dist: float) -> float:
     """Funció que retorna el temps que es triga en recórrer una distància (d'un
     graf) depenent del tipus d'aresta (Street, Tram, Enllaç, Accés).
 
@@ -138,7 +138,7 @@ def get_metro_graph() -> MetroGraph:
         # afegir enllaços de metro (ARESTES)
         if s.name in repeated_stations.keys():
             for s2 in repeated_stations[s.name]:
-                G.add_edge(id, s2, dtype="Transfer", time=_set_time("Transfer", haversine(s.coord, G.nodes[s2]["position"], unit=Unit.METERS)), color="black")
+                G.add_edge(id, s2, dtype="Transfer", time=set_time("Transfer", haversine(s.coord, G.nodes[s2]["position"], unit=Unit.METERS)), color="black")
             repeated_stations[s.name].append(id)
         else:
             repeated_stations[s.name] = [id]
@@ -148,14 +148,14 @@ def get_metro_graph() -> MetroGraph:
             a: Access = accesses[j]
             if a.name_station == s.name:
                 G.add_node(j + n, dtype="Access", name=(a.name_access, a.name_station), position=a.coord, color=a.color)
-                G.add_edge(j + n, id, dtype="Access", time=_set_time("Access", haversine(s.coord, a.coord, unit=Unit.METERS)), color="black")
+                G.add_edge(j + n, id, dtype="Access", time=set_time("Access", haversine(s.coord, a.coord, unit=Unit.METERS)), color="black")
                 j += 1
             else:
                 break
 
         # afegir trams de metro
         if id < n and s.line == stations[id-1].line:
-            G.add_edge(id, id-1, dtype="Tram", time=_set_time("Tram", haversine(s.coord, stations[id-1].coord, unit=Unit.METERS)), color=s.color)
+            G.add_edge(id, id-1, dtype="Tram", time=set_time("Tram", haversine(s.coord, stations[id-1].coord, unit=Unit.METERS)), color=s.color)
 
     return G
 
@@ -165,7 +165,7 @@ def get_metro_graph() -> MetroGraph:
 #################
 
 # pre: nodes de g tenen atribut color
-def _get_node_colors(g: MetroGraph):
+def get_node_colors(g: MetroGraph):
     """Traspassa la informació guardada en un diccionari de colors a una
     llista de colors per pintar els nodes al mapa.
     Aquest diccionari s'obté de l'atribut color guardat al graf g."""
@@ -175,7 +175,7 @@ def _get_node_colors(g: MetroGraph):
 
 
 # pre: arestes de g tenen atribut color
-def _get_edge_colors(g: MetroGraph):
+def get_edge_colors(g: MetroGraph):
     """Traspassa la informació guardada en un diccionari de colors a una
     llista de colors per pintar les arestes al mapa.
     Aquest diccionari s'obté de l'atribut color guardat al graf g."""

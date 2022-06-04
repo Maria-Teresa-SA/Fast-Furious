@@ -239,8 +239,8 @@ def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path:
     Utilitza l'OsmnxGraph per trobar l'ID del node més proper a aquestes coordenades i empra el
     city graph per calcular el camí més curt que les connecta."""
 
-    nearest_src = ox.distance.nearest_nodes(ox_g, src.x, src.long)
-    nearest_dst = ox.distance.nearest_nodes(ox_g, dst.x, dst.lat)
+    nearest_src = ox.distance.nearest_nodes(ox_g, src.long, src.lat)
+    nearest_dst = ox.distance.nearest_nodes(ox_g, dst.long, dst.lat)
     return nx.shortest_path(g, nearest_src, nearest_dst, weight="time")
 
 
