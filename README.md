@@ -42,7 +42,7 @@ Un petit resum d'aquestes primeres són:
 ## Començant
 
 ### Prerequisits
-Per tal d'utilitzar el bot creat, cal tenir descarregat [Python](https://www.python.org/) a l'ordinador, i [Telegram](https://telegram.org/) o bé a l'ordinador o bé al mòbil. A més, cal tenir descarregades les llibreries especificades al arxiu `requeriments.txt`. Això es pot fer amb la següent línia de comandes:
+Per tal d'utilitzar el bot creat, cal tenir descarregat [Python](https://www.python.org/) a l'ordinador, i [Telegram](https://telegram.org/) o bé a l'ordinador o bé al mòbil. A més, cal tenir descarregades les llibreries especificades al arxiu `requirements.txt`. Això es pot fer amb la següent línia de comandes:
 ```
 python -m pip install -r requirements.txt
 ```
