@@ -205,9 +205,6 @@ def find(update, context):
         error = """Ups, si no em dius què vols no podré trobar-te el millor per a tu. ;)
         Si vols saber què fa la comanda find, fes /help find."""
         context.bot.send_message(chat_id=update.effective_chat.id, text=error)
-    else:
-        error = "Ai, ai, ai, quantes coses vols a la vegada!"
-        context.bot.send_message(chat_id=update.effective_chat.id, text=error)
 
 
 def info(update, context):
@@ -215,6 +212,7 @@ def info(update, context):
     """"Mostra la informació sobre el restaurant especificat pel seu
     número (triat de la darrera llista numerada obtinguda amb /find)."""
 
+    # s'ha hagut de fer /find primer
     if 'found' in context.user_data:
         possibilities: Restaurants = context.user_data['found']
         try:
@@ -244,6 +242,7 @@ def guide(update, context):
     breu descripció del trajecte."""
 
     if 'location' in context.user_data is not None:
+        # s'ha hagut de fer /find primer
         if 'found' in context.user_data:
             possibilities: Restaurants = context.user_data['found']
             entry = int(context.args[0])
