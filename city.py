@@ -227,6 +227,7 @@ def get_path_description(g: CityGraph, p: Path) -> str:
 def get_time_path(g: CityGraph, p: Path) -> int:
 
     """Retorna el temps que es triga en recórrer un cert path."""
+
     time = 0
     for i in range(len(p)-1):
         time += g[p[i]][p[i+1]]["time"]
