@@ -54,6 +54,7 @@ MetroGraph: TypeAlias = nx.Graph
 
 # Pre: tenir el fitxer csv estacions_linia.csv
 def read_stations() -> Stations:
+
     """Llegeix un fitxer csv amb la informació requerida de les estacions de metro de
     Barcelona i en retorna una llista d'aquestes."""
 
@@ -71,6 +72,7 @@ def read_stations() -> Stations:
 
 # Pre: tenir el fitxer csv accessos_estacio_linia.csv
 def read_accesses() -> Accesses:
+
     """Llegeix un fitxer csv amb la informació requerida dels accessos de metro
     de Barcelona i en retorna una llista d'aquests."""
 
@@ -93,6 +95,7 @@ def read_accesses() -> Accesses:
 # Pre: el tipus és "Street", "Tran", "Access" o "Transfer" i
 # la distància està en metres
 def set_time(dtype: str, dist: float) -> float:
+
     """Funció que retorna el temps que es triga en recórrer una distància (d'un
     graf) depenent del tipus d'aresta (Street, Tram, Enllaç, Accés).
 
@@ -166,6 +169,7 @@ def get_metro_graph() -> MetroGraph:
 
 # pre: nodes de g tenen atribut color
 def get_node_colors(g: MetroGraph):
+
     """Traspassa la informació guardada en un diccionari de colors a una
     llista de colors per pintar els nodes al mapa.
     Aquest diccionari s'obté de l'atribut color guardat al graf g."""
@@ -176,6 +180,7 @@ def get_node_colors(g: MetroGraph):
 
 # pre: arestes de g tenen atribut color
 def get_edge_colors(g: MetroGraph):
+
     """Traspassa la informació guardada en un diccionari de colors a una
     llista de colors per pintar les arestes al mapa.
     Aquest diccionari s'obté de l'atribut color guardat al graf g."""
@@ -185,6 +190,7 @@ def get_edge_colors(g: MetroGraph):
 
 
 def show(g: MetroGraph) -> None:
+
     """Mostra el graf amb les estacions de metro i els accesos a
     aquestes com a nodes i les seves arestes corresponents."""
 
@@ -193,6 +199,7 @@ def show(g: MetroGraph) -> None:
 
 
 def plot(g: MetroGraph, filename: str) -> None:
+
     """Guarda al fitxer "filename" un plot del graf de metros amb
     la ciutat de Barcelona de fons. S'usa staticmap."""
 
