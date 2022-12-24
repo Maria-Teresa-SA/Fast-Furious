@@ -125,7 +125,7 @@ def find_restaurants(queries: List[str], restaurants: Restaurants) -> Restaurant
 
     for i in range(len(queries)):
         queries[i] = queries[i].title()  # millorar coincidències.
-        # Majoria de paraules es troben en aquest format a fitxer restaurants.
+        # majoria de paraules es troben en aquest format a fitxer restaurants.
 
     weigths = []
     # weigths és una llista de parelles de [Restaurant, pes_associat]
