@@ -8,14 +8,20 @@ import os
 from typing import Dict
 
 # grafs
+print(1)
 street_graph: OsmnxGraph = load_osmnx_graph("barcelona.grf")
+print(2)
 metro_graph: MetroGraph = get_metro_graph()
+print(3)
 city_graph: CityGraph = build_city_graph(street_graph, metro_graph)
 
+
 # restaurants
+print(4)
 list_restaurants: Restaurants = read_restaurants()
 
 # bromes
+print(5)
 jokes = pandas.read_csv("reddit-cleanjokes.csv", usecols=["ID", "Joke"], dtype={"ID": int, "Joke": str})
 
 # diccionaris
@@ -278,6 +284,7 @@ def guide(update, context):
 
 def main() -> None:
 
+    print(6)
     # declara una constant amb el access token que llegeix de token.txt
     TOKEN = open('token.txt').read().strip()
 
@@ -298,6 +305,7 @@ def main() -> None:
     dispatcher.add_handler(CallbackQueryHandler(_handler_more))
 
     # engega el bot
+    print("Inici bot")
     updater.start_polling()
     updater.idle()
 
